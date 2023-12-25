@@ -33,6 +33,8 @@ for i = 1:length(awsfiles)
         "gps_lon", "gps_alt"];
     
     df = rmmissing(readtable(awsfile, opts));
+    df(df.time<datetime("2019-01-01"), :) = [];
+    
     if isempty(df)
         fprintf("is empty\n");
         continue
@@ -46,7 +48,7 @@ for i = 1:length(awsfiles)
         fprintf("has no data after 2019\n");
         continue
     end
-    df(df.time<datetime("2019-01-01"), :) = [];
+    
     df.aws = repmat(awsname, length(df.cc), 1);
     writetable(df, outputfolder+"\promiceDaily.csv", "WriteVariableNames", ...
         false, "WriteMode", 'append');
