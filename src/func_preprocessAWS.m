@@ -19,7 +19,10 @@ function [dfaws, awsloc] = func_preprocessAWS(awsfolder, outputfolder)
 
 %% extract time series of interest
 awsfiles = dir(awsfolder + "\*.csv");
-delete(outputfolder+"\AWS_height_daily.pdf");
+% remove exported figure file if it exits already
+if isfile(outputfolder+"\AWS_height_daily.pdf")
+    delete(outputfolder+"\AWS_height_daily.pdf");
+end
 
 df = array2table(zeros(0,8), 'VariableNames',["time", "cc", "albedo", "z_pt_cor"...
     "gps_lat", "gps_lon", "gps_alt", "aws"]);

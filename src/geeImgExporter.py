@@ -10,7 +10,7 @@
 import geemap
 import ee
 import pandas as pd
-import os
+# import os
 import datetime
 
 # %% [markdown]
@@ -19,7 +19,7 @@ print(datetime.datetime.now())
 print('Start!\n')
 # %% load AWS data and define output folder
 df = pd.read_csv("H:\AU\promiceaws\output\AWS_height_station_locations_4gee.csv")
-output_folder = "H:\AU\promiceaws\HSA"
+output_folder = "H:\AU\promiceaws\HSA1"
 # %% [markdown]
 # # GEE
 
@@ -72,13 +72,13 @@ def renameS2(img):
 
 def oli2oli(img):
   return img.select(['Blue', 'Green', 'Red', 'NIR', 'SWIR1', 'SWIR2']) \
-    .toFloat()
+    .toDouble()
 
 def etm2oli(img):
   return img.select(['Blue', 'Green', 'Red', 'NIR', 'SWIR1', 'SWIR2']) \
     .multiply(rmaCoefficients["slopesL7"]) \
     .add(rmaCoefficients["itcpsL7"]) \
-    .toFloat()
+    .toDouble()
     # .round() \
     # .toShort() 
     # .addBands(img.select('pixel_qa'))
@@ -87,7 +87,7 @@ def s22oli(img):
   return img.select(['Blue', 'Green', 'Red', 'NIR', 'SWIR1', 'SWIR2']) \
     .multiply(rmaCoefficients["slopesS2"]) \
     .add(rmaCoefficients["itcpsS2"]) \
-    .toFloat()
+    .toDouble()
     # .round() \
     # .toShort() # convert to Int16
     # .addBands(img.select('pixel_qa'))
@@ -255,7 +255,8 @@ for i in range(len(df.aws)):
     
     print('The station is: %s \n' %df.aws[i])
     print('date is %d-%d \n' % (df.y[i], df.m[i]))
-    subfolder = os.path.join(output_folder, df.aws[i], str(df.y[i]) + '-' + str(df.m[i]))
+    # subfolder = os.path.join(output_folder, df.aws[i], str(df.y[i]) + '-' + str(df.m[i]))
+    subfolder = df.aws[i] +'-' + str(df.y[i]) + '-' + str(df.m[i])
 
     poi = ee.Geometry.Point([df.mean_gps_lon[i], df.mean_gps_lat[i]])
     aoi = poi.buffer(2500).bounds() # 5000 is the buffer size in meters
@@ -333,20 +334,36 @@ for i in range(len(df.aws)):
     # mask the image collection of albedo by the ice mask
     greenlandmask = ee.Image('OSU/GIMP/2000_ICE_OCEAN_MASK') \
                    .select('ice_mask').eq(1) #'ice_mask', 'ocean_mask'
-    def iceMask(image):
+    # greenlandmask = ee.Image('OSU/GIMP/2000_ICE_OCEAN_MASK') \
+    #                .select('ice_mask') #'ice_mask', 'ocean_mask'
+    # glimsmask = ee.Image().paint(ee.FeatureCollection('GLIMS/current'), 1)
+    # iceMask = ee.ImageCollection([
+    #    greenlandmask,
+    #    glimsmask.rename('ice_mask')
+    # ]).mosaic().eq(1)
+
+    def applyIceMask(image):
         return image.updateMask(greenlandmask)
-    hsaDayCol = ee.ImageCollection(ee.List(range.iterate(day_mosaics, ee.List([])))).map(iceMask)
+    hsaDayCol = ee.ImageCollection(ee.List(range.iterate(day_mosaics, ee.List([])))).map(applyIceMask)
     # if multiSat.size().getInfo()==0:
     #     continue
-    geemap.ee_export_image_collection(
+    
+    # geemap.ee_export_image_collection(
+    #     hsaDayCol, 
+    #     out_dir = subfolder, 
+    #     scale = 30, 
+    #     crs = 'EPSG:3411', 
+    #     region = aoi, 
+    #     file_per_band = False
+    # )
+    geemap.ee_export_image_collection_to_drive(
         hsaDayCol, 
-        out_dir = subfolder, 
+        folder=subfolder,
         scale = 30, 
         crs = 'EPSG:3411', 
         region = aoi, 
-        file_per_band = False,
+        # file_per_band = False,
     )
-
 print(datetime.datetime.now())
 print('Done!\n')
 # %%
