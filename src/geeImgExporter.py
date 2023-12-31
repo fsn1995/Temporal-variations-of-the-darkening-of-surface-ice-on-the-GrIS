@@ -1,10 +1,16 @@
 # %% [markdown]
-# This notebook first displays the location of PROMICE AWSs and calculated the annual velocity based on the GPS record.
-# Then it will extract the satellite pixel values and MODIS albedo prodcut at each AWS site.
-# Results will be saved in csv files under the promice folder. 
-# 
-# 
-# Users should change the size of spatial window when extracting the pixel values. 
+'''
+This script is used to export images from GEE to local folder or Google Drive.
+Exporting to Google Drive is recommended because it is faster and more stable,
+but there's a hard limit on the number of tasks you can run per day.
+Hence, if you have a large number of images to export, you may want to export the images
+to a local folder first. This is the default option. You can change the export option 
+by uncommenting the corresponding line in the code below.
+Note that export images from GEE to local folder may have a bug that removes land mask. 
+
+Author: Shunan Feng
+Email : shunan.feng@envs.au.dk
+'''
 
 # %%
 import geemap
@@ -14,7 +20,7 @@ import pandas as pd
 import datetime
 
 # %% [markdown]
-# # PROMICE
+# # Initialization
 print(datetime.datetime.now())
 print('Start!\n')
 # %% load AWS data and define output folder
@@ -348,22 +354,21 @@ for i in range(len(df.aws)):
     # if multiSat.size().getInfo()==0:
     #     continue
     
-    # geemap.ee_export_image_collection(
-    #     hsaDayCol, 
-    #     out_dir = subfolder, 
-    #     scale = 30, 
-    #     crs = 'EPSG:3411', 
-    #     region = aoi, 
-    #     file_per_band = False
-    # )
-    geemap.ee_export_image_collection_to_drive(
+    geemap.ee_export_image_collection(
         hsaDayCol, 
-        folder=subfolder,
+        out_dir = subfolder, 
         scale = 30, 
         crs = 'EPSG:3411', 
         region = aoi, 
-        # file_per_band = False,
+        file_per_band = False
     )
+    # geemap.ee_export_image_collection_to_drive(
+    #     hsaDayCol, 
+    #     folder=subfolder,
+    #     scale = 30, 
+    #     crs = 'EPSG:3411', 
+    #     region = aoi
+    # )
 print(datetime.datetime.now())
 print('Done!\n')
 # %%

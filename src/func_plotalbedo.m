@@ -1,6 +1,10 @@
 function imgoutput = func_plotalbedo(dfaws,dfhsa,outputfolder)
-%FUNC_PLOTALBEDO Summary of this function goes here
-%   Detailed explanation goes here
+%  This function plots the AWS and HSA albedo data for each AWS station
+%  and save the image to the output folder.
+%  dfaws: table of AWS data
+%  dfhsa: table of HSA data
+%  outputfolder: folder to save the output image
+%  Shunan Feng (shunan.feng@envs.au.dk)
 
 % check input variable
 if isstring(dfaws)
@@ -43,13 +47,22 @@ for i = 1:numel(awslist)
         end
 
         index = dfawssub.y == y;
-        dfplot = dfawssub(index,:);
-        plot(dfplot.time, dfplot.albedo, 'LineWidth',2, 'DisplayName','AWS');
+        dfplotaws = dfawssub(index,:);
+        plot(dfplotaws.time, dfplotaws.albedo, 'LineWidth',2, 'DisplayName','AWS');
         text(datetime(y, 5, 1), 0.2, sprintf("AWS: %d", sum(index)));
         hold on
         index = dfhsasub.y == y;
-        dfplot = dfhsasub(index,:);
-        scatter(dfplot, "time", "mean_visnirAlbedo", "filled", "DisplayName","HSA");
+        dfplothsa = dfhsasub(index,:);
+        scatter(dfplothsa, "time", "mean_visnirAlbedo", "filled", "DisplayName","HSA");
+
+        df = innerjoin(dfplothsa, dfplotaws, "Keys", "time");
+        if ~isempty(df)
+            mdl = fitlm(df.mean_visnirAlbedo, df.albedo, "linear");
+            text(datetime(y, 5, 1), 0.3, sprintf("r^2: %.3f", mdl.Rsquared.Ordinary));
+        else
+            fprintf('no paired albedo values \n');
+        end
+
         text(datetime(y, 5, 1), 0.1, sprintf("HSA: %d", sum(index)));
         grid on
         ylim([0 1]);
