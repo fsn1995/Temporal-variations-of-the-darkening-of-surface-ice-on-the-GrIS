@@ -71,15 +71,22 @@ for i = 1:numel(awslist)
         ylabel("albedo");
         grid on
         
+        % % perform height quality check
+        % if max(abs(dfawsplot.height_rate))>5
+        %     legend("Location", "southoutside");
+        %     fprintf("outlier found in height, discard in plot\n")
+        %     continue
+        % end
+        % 
         % yyaxis(ax1, "right");
         % plot(ax1, dfawsplot.time, dfawsplot.height_diff, 'LineWidth',2,...
         %     "DisplayName", "height_diff");
         % ylabel(ax1,"height difference (m)")
-        % mdl = fitlm(dfawsplot.albedo, cumsum(dfawsplot.height_diff), "linear");
+        % mdl = fitlm(dfawsplot.albedo, dfawsplot.height_diff, "linear");
         % yyaxis(ax1, "left");
         % text(ax1,datetime(y, 6, 1), 0.2, ...
         %     sprintf("AWS albedo vs height r^2: %.2f", mdl.Rsquared.Ordinary));
-        legend("Location", "southoutside");
+        legend("Location", "southoutside", "NumColumns", 2);
     end
     title(t, insertBefore(awsid, "_", "\"));
     exportgraphics(f1, imgoutput, "Resolution", 300, "Append", true);

@@ -28,13 +28,13 @@ dfhsa = sortrows(dfhsa, {'aws', 'time'});
 
 % prepare output csv file
 varlist = dfaws.Properties.VariableNames;
-df = array2table(zeros(0,length(varlist)+2), 'VariableNames', ...
-    [varlist, "albedo_diff", "height_diff"]);
+df = array2table(zeros(0,length(varlist)+4), 'VariableNames', ...
+    [varlist, "albedo_diff", "albedo_rate", "height_diff", "height_rate"]);
 writetable(df, outputfolder + "\AWS_reprocessed.csv",...
     'WriteVariableNames', true, 'WriteMode','overwrite');
 varlist = dfhsa.Properties.VariableNames;
-df = array2table(zeros(0,length(varlist)+1), 'VariableNames', ...
-    [varlist, "hsa_diff"]);
+df = array2table(zeros(0,length(varlist)+2), 'VariableNames', ...
+    [varlist, "hsa_diff", "hsa_rate"]);
 writetable(df, outputfolder + "\HSA_reprocessed.csv",...
     'WriteVariableNames', true, 'WriteMode','overwrite');
 
@@ -63,15 +63,26 @@ for i = 1:numel(awslist)
 
         index = dfawssub.y == y;
         dfaws_reprocessed = dfawssub(index,:);
+
         dfaws_reprocessed.albedo_diff = zeros(height(dfaws_reprocessed), 1);
+        dfaws_reprocessed.albedo_rate = zeros(height(dfaws_reprocessed), 1);
         dfaws_reprocessed.height_diff = zeros(height(dfaws_reprocessed), 1);
-        dfaws_reprocessed.albedo_diff(2:end) = diff(dfaws_reprocessed.albedo);
-        dfaws_reprocessed.height_diff(2:end) = diff(dfaws_reprocessed.z_pt_cor);
+        dfaws_reprocessed.height_rate = zeros(height(dfaws_reprocessed), 1);
+        dfaws_reprocessed.albedo_diff = dfaws_reprocessed.albedo - dfaws_reprocessed.albedo(1);
+        dfaws_reprocessed.albedo_rate(2:end) = diff(dfaws_reprocessed.albedo)./days(diff(dfaws_reprocessed.time));
+        dfaws_reprocessed.height_diff = dfaws_reprocessed.z_pt_cor - dfaws_reprocessed.z_pt_cor(1);
+        dfaws_reprocessed.height_rate(2:end) = diff(dfaws_reprocessed.z_pt_cor)./days(diff(dfaws_reprocessed.time));
 
         index = dfhsasub.y == y;
         dfhsa_reprocessed = dfhsasub(index,:);
         dfhsa_reprocessed.hsa_diff = zeros(height(dfhsa_reprocessed), 1);
-        dfhsa_reprocessed.hsa_diff(2:end) = diff(dfhsa_reprocessed.hsa);
+        dfhsa_reprocessed.hsa_rate = zeros(height(dfhsa_reprocessed), 1);
+        if height(dfhsa_reprocessed)>1
+            dfhsa_reprocessed.hsa_diff = dfhsa_reprocessed.hsa - dfhsa_reprocessed.hsa(1);
+            dfhsa_reprocessed.hsa_rate(2:end) = diff(dfhsa_reprocessed.hsa)./days(diff(dfhsa_reprocessed.time));
+        else 
+            fprintf('Number of HSA is less than 2\n');
+        end
     
         writetable(removevars(dfaws_reprocessed, {'y', 'm', 'd'}), ...
             outputfolder + "\AWS_reprocessed.csv", ...
