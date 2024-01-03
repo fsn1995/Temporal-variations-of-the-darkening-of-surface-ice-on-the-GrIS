@@ -10,6 +10,7 @@ function imgoutput = func_plotalbedo(dfaws,dfhsa,outputfolder)
 if isstring(dfaws)
     dfaws = readtable(dfaws);
 end
+dfaws(dfaws.time<datetime(2019,1,1), :) = [];
 if isstring(dfhsa)
     dfhsa = readtable(dfhsa);
 end

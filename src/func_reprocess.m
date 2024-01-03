@@ -14,6 +14,7 @@ function [dfawsnew, dfhsajoined]= func_reprocess(dfaws, dfhsa, outputfolder)
 if isstring(dfaws)
     dfaws = readtable(dfaws);
 end
+dfaws(dfaws.time<datetime(2008,1,1),:) = [];
 if isstring(dfhsa)
     dfhsa = readtable(dfhsa);
 end
@@ -28,8 +29,8 @@ dfhsa = sortrows(dfhsa, {'aws', 'time'});
 
 % prepare output csv file
 varlist = dfaws.Properties.VariableNames;
-df = array2table(zeros(0,length(varlist)+4), 'VariableNames', ...
-    [varlist, "albedo_diff", "albedo_rate", "height_diff", "height_rate"]);
+df = array2table(zeros(0,length(varlist)+5), 'VariableNames', ...
+    [varlist, "awsgroup", "albedo_diff", "albedo_rate", "height_diff", "height_rate"]);
 writetable(df, outputfolder + "\AWS_reprocessed.csv",...
     'WriteVariableNames', true, 'WriteMode','overwrite');
 varlist = dfhsa.Properties.VariableNames;
@@ -40,23 +41,50 @@ writetable(df, outputfolder + "\HSA_reprocessed.csv",...
 
 
 [dfaws.y, dfaws.m, dfaws.d] = ymd(dfaws.time);
-[dfhsa.y, dfhsa.m, dfhsa.d] = ymd(dfhsa.time);
-awslist = unique(dfaws.aws);
 
+fprintf("start reprocessing AWS data\n");
+awslist = unique(dfaws.aws);
 for i = 1:numel(awslist)
     awsid = string(awslist(i));
     disp(awsid);
 
     % filter data by AWS
     dfawssub = dfaws(dfaws.aws == awsid, :);
-    dfhsasub = dfhsa(dfhsa.aws == awsid, :);
+    % group AWS by locations
+    awsgroup = extractAfter(awsid, '_');
+    if ismissing(awsgroup)
+        dfawssub.awsgroup = dfawssub.aws;
+    else
+        dfawssub.awsgroup = repmat(extract(awsgroup, 1), height(dfawssub), 1);
+    end
+    switch awsid
+        case "JAR"
+            dfawssub.awsgroup = repmat("M", height(dfawssub), 1);
+        case "JAR_O"
+            dfawssub.awsgroup = repmat("M", height(dfawssub), 1);
+        case "MIT"
+            dfawssub.awsgroup = repmat("G", height(dfawssub), 1);
+        case "NUK_K"
+            dfawssub.awsgroup = repmat("G", height(dfawssub), 1);
+        case "NUK_N"
+            dfawssub.awsgroup = repmat("L", height(dfawssub), 1);
+        case "SWC"
+            dfawssub.awsgroup = repmat("U", height(dfawssub), 1);
+        case "SWC_O"
+            dfawssub.awsgroup = repmat("U", height(dfawssub), 1);
+        case "TAS_A"
+            dfawssub.awsgroup = repmat("U", height(dfawssub), 1);
+    end
 
-    for y = 2019:1:2023
+    for y = min(unique(dfawssub.y)):1:max(unique(dfawssub.y))
         % nexttile(t);
 
         if ~ismember(y, dfawssub.y)
             fprintf("year %d has no data\n", y);
             continue
+        elseif min(dfawssub.albedo)>=(0.565+0.109)
+                fprintf("year %d has no bare ice\n", y)
+                continue
         else
             disp(y);
         end
@@ -72,6 +100,35 @@ for i = 1:numel(awslist)
         dfaws_reprocessed.albedo_rate(2:end) = diff(dfaws_reprocessed.albedo)./days(diff(dfaws_reprocessed.time));
         dfaws_reprocessed.height_diff = dfaws_reprocessed.z_pt_cor - dfaws_reprocessed.z_pt_cor(1);
         dfaws_reprocessed.height_rate(2:end) = diff(dfaws_reprocessed.z_pt_cor)./days(diff(dfaws_reprocessed.time));
+    
+        writetable(removevars(dfaws_reprocessed, {'y', 'm', 'd'}), ...
+            outputfolder + "\AWS_reprocessed.csv", ...
+            "WriteVariableNames", false, "WriteMode","append");
+
+    end
+
+end
+
+[dfhsa.y, dfhsa.m, dfhsa.d] = ymd(dfhsa.time);
+
+fprintf("start reprocessing HSA data\n");
+awslist = unique(dfhsa.aws);
+for i = 1:numel(awslist)
+    awsid = string(awslist(i));
+    disp(awsid);
+
+    % filter data by AWS
+    dfhsasub = dfhsa(dfhsa.aws == awsid, :);
+
+    for y = min(unique(dfhsasub.y)):1:max(unique(dfhsasub.y))
+        % nexttile(t);
+
+        if ~ismember(y, dfhsasub.y)
+            fprintf("year %d has no data\n", y);
+            continue
+        else
+            disp(y);
+        end
 
         index = dfhsasub.y == y;
         dfhsa_reprocessed = dfhsasub(index,:);
@@ -83,11 +140,7 @@ for i = 1:numel(awslist)
         else 
             fprintf('Number of HSA is less than 2\n');
         end
-    
-        writetable(removevars(dfaws_reprocessed, {'y', 'm', 'd'}), ...
-            outputfolder + "\AWS_reprocessed.csv", ...
-            "WriteVariableNames", false, "WriteMode","append");
-      
+
         writetable(removevars(dfhsa_reprocessed, {'y', 'm', 'd'}), ...
             outputfolder + "\HSA_reprocessed.csv", ...
             "WriteVariableNames", false, "WriteMode","append");

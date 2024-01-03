@@ -14,7 +14,10 @@ end
 %     dfhsa = readtable(dfhsa);
 % end
 imgoutput = outputfolder + "\AWS_plot_height.pdf";
-delete(imgoutput);
+% remove exported figure file if it exits already
+if isfile(imgoutput)
+    delete(imgoutput);
+end
 
 awslist = unique(dfaws.aws);
 

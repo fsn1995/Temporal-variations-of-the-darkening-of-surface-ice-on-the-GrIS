@@ -4,6 +4,7 @@ function [imgoutput] = func_satimgPreview(dfaws,imgfolder)
 if isstring(dfaws)
     dfaws = readtable(dfaws);
 end
+dfaws(dfaws.time<datetime(2019,1,1), :) = [];
 % remove exported figure file if it exits already
 imgoutput = imgfolder + "\*.pdf";
 delete(imgoutput);

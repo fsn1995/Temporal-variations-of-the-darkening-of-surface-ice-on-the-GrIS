@@ -88,7 +88,7 @@ for i = 1:length(awsfiles)
         "gps_lat", "gps_lon", "gps_alt"];
     
     df = rmmissing(readtable(awsfile, opts));
-    df(df.time<datetime("2019-01-01"), :) = [];
+    % df(df.time<datetime("2019-01-01"), :) = [];
 
     if isempty(df)
         fprintf("is empty\n");
@@ -96,7 +96,7 @@ for i = 1:length(awsfiles)
     elseif mean(df.gps_alt)>2000
         fprintf("is above snowline\n")
         continue
-    elseif min(df.albedo)>0.65
+    elseif min(df.albedo)>(0.565+0.109)
         fprintf("has no bare ice\n");
         continue
     end
@@ -109,17 +109,20 @@ for i = 1:length(awsfiles)
     [df.y, df.m, df.d] = ymd(df.time);
     index = df.m>4 & df.m<10;
     df = df(index,:);
-    f1 = figure; %'Visible','off'
-    f1.Position = [219 130 1400 400]; %[2200 120 950 280];
-    t = tiledlayout(2,5, "TileSpacing","compact", "Padding","compact");
-    for y = 2019:1:2023
-        nexttile(t);
+    for y = min(unique(df.y)):1:max(unique(df.y))
+        
         if ~ismember(y, df.y)
             fprintf("year %d has no data\n", y);
             continue
         else
             disp(y);
         end
+
+        f1 = figure; %'Visible','off'
+        f1.Position = [210 130 1000 300]; %[2200 120 950 280];
+        t = tiledlayout(1,2, "TileSpacing","compact", "Padding","compact");
+        nexttile(t);
+      
         index = df.y == y;
         dfplot = df(index,:);
         plot(dfplot.time, dfplot.albedo, 'LineWidth',2, 'DisplayName','albedo');
@@ -130,26 +133,18 @@ for i = 1:length(awsfiles)
         grid on
         legend("Location", "southoutside");
         xlim([datetime(y, 5, 1) datetime(y, 9, 30)]);
-    end
-
-    for y=2019:1:2023
-        if ~ismember(y, df.y)
-            % fprintf("year %d has no data\n", y);
-            continue
-        end
-
-        index = df.y == y;
-        dfplot = df(index,:);
 
         gax = geoaxes(t);
-        gax.Layout.Tile = y-2019+6;
+        gax.Layout.Tile = 2;
         geoscatter(dfplot.gps_lat, dfplot.gps_lon, 'filled');
         geobasemap("colorterrain");
+        
+        title(t, insertBefore(awsname, "_", "\"));
+        exportgraphics(f1, outputfolder+"\AWS_height_daily.pdf", ...
+            "Resolution",300, "Append", true)
+        close(f1);
     end
-    title(t, insertBefore(awsname, "_", "\"));
-    exportgraphics(f1, outputfolder+"\AWS_height_daily.pdf", ...
-        "Resolution",300, "Append", true)
-    close(f1);
+    
 end
 
 %% export AWS location for mapping 
@@ -171,7 +166,7 @@ fprintf("AWS location exported at %s\n", outputfolder+"/AWS_height_station_locat
 df = readtable("H:\AU\promiceaws\output\AWS_height_daily.csv");
 [df.y, df.m, ~] = ymd(df.time);
 df = removevars(df, ["time", "albedo", "cc", "z_pt_cor"]);
-index = df.m>4 & df.m<10;
+index = df.m>4 & df.m<10 & df.y>=2019;
 dfgee = groupsummary(df(index, :), ["aws", "y", "m"], "mean", ["gps_lat", "gps_lon"]);
 writetable(dfgee, outputfolder+"/AWS_height_station_locations_4gee.csv");
 fprintf("monthly AWS location for GEE exported at %s\n", outputfolder+"/AWS_height_station_locations_4gee.csv");

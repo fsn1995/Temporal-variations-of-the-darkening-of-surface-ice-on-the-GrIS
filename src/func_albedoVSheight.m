@@ -13,6 +13,7 @@ end
 % dfhsa.time = datetime(dfhsa.y, dfhsa.m, dfhsa.d);
 % dfhsa = innerjoin(dfhsa, dfaws,"Keys",{'aws', 'time'});
 [dfaws.y, dfaws.m, dfaws.d] = ymd(dfaws.time);
+dfaws(dfaws.m<6 & dfaws.m>8, :) = [];
 % writetable(dfhsa, outputfolder + "\AWS_height_station_HSA_joined.csv");
 
 % remove exported figure file if it exits already
@@ -44,9 +45,6 @@ for i = 1:numel(awslist)
     % filter data by AWS
     dfawssub = dfaws(dfaws.aws == awsid, :);
     % dfhsasub = dfhsa(dfhsa.aws == awsid, :);
-    % keep May-Sep only
-    index = dfawssub.m > 4 & dfawssub.m < 10;
-    dfawssub = dfawssub(index, :);
 
     f1 = figure; %'Visible','off'
     f1.Position = [350 310 1450 250];

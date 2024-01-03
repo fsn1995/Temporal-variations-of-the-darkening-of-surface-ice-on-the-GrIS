@@ -10,11 +10,15 @@ function imgoutput = func_plotAWSHSA(dfaws,dfhsa,outputfolder)
 if isstring(dfaws)
     dfaws = readtable(dfaws);
 end
+dfaws(dfaws.time<datetime(2019,1,1), :) = [];
 if isstring(dfhsa)
     dfhsa = readtable(dfhsa);
 end
 imgoutput = outputfolder + "\AWS_HSA_preview.pdf";
-delete(imgoutput);
+% remove exported figure file if it exits already
+if isfile(imgoutput)
+    delete(imgoutput);
+end
 
 % filter data to June-July-August
 [dfaws.y, dfaws.m, dfaws.d] = ymd(dfaws.time);
@@ -66,7 +70,7 @@ for i = 1:numel(awslist)
             fprintf('no paired HSA \n');
         end
         ylim([0 1]);
-        xlim([datetime(y, 5, 31) datetime(y, 9, 1)]);
+        xlim([datetime(y, 6, 1) datetime(y, 8, 31)]);
         xlabel("");
         ylabel("albedo");
         grid on
