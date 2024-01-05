@@ -28,13 +28,22 @@
 %     "H:\AU\promiceaws\output");
 
 %% Data analysis
-
+% % plot albedo vs HSA
 % [~] = func_plotAWSHSA("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
 %     "H:\AU\promiceaws\output\HSA_reprocessed.csv", ...
 %     "..\print");
 
-% [~, ~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
-%     "..\stat");
+% % plot albedo vs height
+% [~] = func_plotheight("H:\AU\promiceaws\output\AWS_reprocessed.csv", "..\print");
+% 
+% % analyze albeod threshold
+% [~, ~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv");
 
-[~] = func_height_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv", "..\print");
+% duration analysis
+[~] = func_duration_calculator("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
+    "H:\AU\promiceaws\output\HSA_reprocessed.csv", ...
+    "..\print");
+
+% f1 = func_duration_analysis("..\print\icestats.xlsx", "..\print");
+
 

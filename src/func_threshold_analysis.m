@@ -1,4 +1,4 @@
-function [f1, dfstat] = func_threshold_analysis(dfaws, statsoutput)
+function [f1] = func_threshold_analysis(dfaws)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 % check input variable
@@ -12,12 +12,23 @@ awsgroupColor = ["#186294", "#bd3162", "#cdb47b", "#41b4ee"]; % gyarados
 
 %% plot mean albedo over different AWS groups
 
-% all years
+% average over all years
 df = groupsummary(dfaws, {'m', 'd', 'awsgroup'}, "all", "albedo");
 df.y = repmat(2023, height(df), 1);
 df.mean_albedoH = df.mean_albedo + df.std_albedo;
 df.mean_albedoL = df.mean_albedo - df.std_albedo;
 df.time = datetime(2023, df.m, df.d); % assign a random y for plotting
+
+% assign day of year to data
+dfaws.doy = day(dfaws.time, "dayofyear");
+df.doy = day(df.time, "dayofyear");
+dfstat = df(df.awsgroup == "M", :);
+
+% find abrupt change in mean
+[TF,S1,S2] = ischange(dfstat.mean_albedo, "mean", "MaxNumChanges", 3);
+time_change = dfstat.time(TF);
+albedo_change = dfstat.mean_albedo(TF);
+albedo_threshold = mean(albedo_change(2:3));
 
 f1 = figure;
 f1.Position = [488   245   917   417];
@@ -27,15 +38,27 @@ A = imread("..\print\aoi.png");
 imshow(A);
 text(ax1, 80, 1600, "a)", "FontSize", 12, "Color", "w");
 ax2 = nexttile([1 2]);
+plot(ax2, [time_change(1) time_change(1)], [0 albedo_change(1)], ...
+    [dfstat.time(1) time_change(1)], [albedo_change(1) albedo_change(1)], ...
+    [time_change(2) time_change(2)], [0 albedo_change(2)], ...
+    [dfstat.time(1) time_change(2)], [albedo_change(2) albedo_change(2)], ...
+    [time_change(3) time_change(3)], [0 albedo_change(3)], ...
+    [dfstat.time(1) time_change(3)], [albedo_change(3) albedo_change(3)], ...
+    "LineStyle", "-.", "LineWidth", 1, "Color", "k");
 hold on
+scatter(ax2, time_change, albedo_change, ...
+    "filled", "MarkerFaceColor", awsgroupColor(2));
+yline(ax2, albedo_threshold, '--', sprintf('\\alpha = %.3f', albedo_threshold),...
+        'Color', 'k', 'LineWidth', 1.5, 'LabelHorizontalAlignment','right');
 plotAWSGroup(ax2, df, awsgroup, awsgroupColor);
 ax2.XTickLabel = ax2.XTickLabel;
 text(ax2, datetime(2023, 6, 3), 0.15, "b)", "FontSize", 12);
+ylim(ax2, [0.1 0.9]);
 fontsize(f1, 12, "points");
 exportgraphics(f1, "..\print\fig1_aoi.pdf", "Resolution", 300);
 
-dfstat = df;
-writetable(dfstat, statsoutput+"\stat.xlsx","Sheet", "threshold");
+% dfstat = df;
+% writetable(dfstat, statsoutput+"\stat.xlsx","Sheet", "threshold");
 % f1 = figure;
 % f1.Position = [488   242   560   420];
 % figax = gca;
@@ -76,13 +99,13 @@ function plotAWSGroup(figax, df, awsgroup, awsgroupColor)
             awsgroupColor(i));
     end
     yline(figax, 0.565,       '--', '\alpha = 0.565',         ...
-        'Color', 'k', 'LineWidth', 1.5); % 
+        'Color', 'k', 'LineWidth', 1.5, 'LabelHorizontalAlignment','right'); 
     % yline(figax, 0.565+0.109, '--', '\alpha = 0.565+1\sigma', ...
     %     'Color', 'k', 'LineWidth', 1);
     % yline(figax, 0.565-0.109, '--', '\alpha = 0.565-1\sigma', ...
     %     'Color', 'k', 'LineWidth', 1);
     xlim([datetime(unique(df.y), 6, 1) datetime(unique(df.y), 8, 31)]);
-    hold off
+    % hold off
     legend(figax, ax(ax>0), "Location", "northoutside", "NumColumns", numel(awsgroup));
     grid on
     % clearvars ax
