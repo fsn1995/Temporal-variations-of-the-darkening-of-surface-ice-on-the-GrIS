@@ -48,6 +48,11 @@ for i = 1:numel(awslist)
 
         index = dfawssub.y == y;
         dfawsplot = dfawssub(index,:);
+        if min(dfawsplot.albedo) >=0.565
+            fprintf("no bare ice \n");
+            continue
+        end
+        
         dfawsplot.height_diff = dfawsplot.z_pt_cor - dfawsplot.z_pt_cor(1);
 
         f1 = figure; %'Visible','off'

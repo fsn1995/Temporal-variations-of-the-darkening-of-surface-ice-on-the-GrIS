@@ -19,7 +19,13 @@ imgoutput = outputfolder + "\AWS_HSA_preview.pdf";
 if isfile(imgoutput)
     delete(imgoutput);
 end
+% prepare new HSA output
+df = array2table(zeros(0,4), 'VariableNames', ...
+    ["time", "aws", "hsa" "hsa_interp"]);
+writetable(df, outputfolder + "\HSA_interp.csv",...
+    'WriteVariableNames', true, 'WriteMode','overwrite');
 
+% dfaws = outerjoin(dfaws, dfhsa, "Keys",{'aws', 'time'}, 'MergeKeys',true);
 % filter data to June-July-August
 [dfaws.y, dfaws.m, dfaws.d] = ymd(dfaws.time);
 [dfhsa.y, dfhsa.m, dfhsa.d] = ymd(dfhsa.time);
@@ -58,23 +64,37 @@ for i = 1:numel(awslist)
         hold on
         index = dfhsasub.y == y;
         dfhsaplot = dfhsasub(index,:);
+        dfhsa_new = table;
+        dfhsa_new.time = (datetime(y, 6, 1):caldays(1):datetime(y, 8, 31))';
+        dfhsa_new.aws = repmat(unique(dfhsaplot.aws), height(dfhsa_new), 1);
+        dfhsa_new = outerjoin(dfhsa_new, dfhsaplot, "Keys",{'time', 'aws'}, "MergeKeys",true);
+        dfhsa_new.hsa_interp = fillmissing(dfhsa_new.hsa, "linear");
         scatter(ax1, dfhsaplot.time, dfhsaplot.hsa, "filled", "DisplayName","HSA");
+        plot(ax1, dfhsa_new.time, dfhsa_new.hsa_interp, 'LineWidth',2, 'DisplayName','HSA interp')
 
         df = innerjoin(dfhsaplot, dfawsplot, "Keys", "time");
         if ~isempty(df)
             mdl = fitlm(df.hsa, df.albedo, "linear");
-            text(datetime(y, 6, 1), 0.1, ...
-                sprintf("r^2: %.2f, p-value<%.2f", ...
-                mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue));
+            text(datetime(y, 6, 1), 0.07, ...
+                sprintf("HSA r^2: %.2f, p-value<%.2f, n:%.0f", ...
+                mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
         else
             fprintf('no paired HSA \n');
         end
-        ylim([0 1]);
-        xlim([datetime(y, 6, 1) datetime(y, 8, 31)]);
-        xlabel("");
-        ylabel("albedo");
+        df = innerjoin(dfhsa_new, dfawsplot,  "Keys",{'time', 'aws'});
+        mdl = fitlm(df.hsa_interp, df.albedo, "linear");
+        text(datetime(y, 6, 1), 0.2, ...
+                sprintf("interp r^2: %.2f, p-value<%.2f, n:%.0f", ...
+                mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
+
+        ylim(ax1, [0 1]);
+        xlim(ax1, [datetime(y, 6, 1) datetime(y, 8, 31)]);
+        xlabel(ax1, "");
+        ylabel(ax1, "albedo");
         grid on
-        
+        yyaxis right
+        dfawsplot.height_diff = dfawsplot.z_pt_cor - dfawsplot.z_pt_cor(1);
+        plot(dfawsplot.time, dfawsplot.height_diff, 'LineWidth',2, 'DisplayName','ablation');
         % % perform height quality check
         % if max(abs(dfawsplot.height_rate))>5
         %     legend("Location", "southoutside");
@@ -91,6 +111,9 @@ for i = 1:numel(awslist)
         % text(ax1,datetime(y, 6, 1), 0.2, ...
         %     sprintf("AWS albedo vs height r^2: %.2f", mdl.Rsquared.Ordinary));
         legend("Location", "southoutside", "NumColumns", 2);
+        writetable(removevars(dfhsa_new, {'hsa_diff' 'hsa_rate' 'y' 'm' 'd' }), ...
+            outputfolder + "\HSA_interp.csv",...
+            'WriteVariableNames', false, 'WriteMode','append');
     end
     title(t, insertBefore(awsid, "_", "\"));
     exportgraphics(f1, imgoutput, "Resolution", 300, "Append", true);
