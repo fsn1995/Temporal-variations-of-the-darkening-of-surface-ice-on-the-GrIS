@@ -29,8 +29,8 @@ dfhsa = sortrows(dfhsa, {'aws', 'time'});
 
 % prepare output csv file
 varlist = dfaws.Properties.VariableNames;
-df = array2table(zeros(0,length(varlist)+5), 'VariableNames', ...
-    [varlist, "awsgroup", "albedo_diff", "albedo_rate", "height_diff", "height_rate"]);
+df = array2table(zeros(0,length(varlist)+6), 'VariableNames', ...
+    [varlist, "awsgroup", "albedo_diff", "albedo_rate", "height_diff", "height_rate", "dod"]);
 writetable(df, outputfolder + "\AWS_reprocessed.csv",...
     'WriteVariableNames', true, 'WriteMode','overwrite');
 varlist = dfhsa.Properties.VariableNames;
@@ -41,7 +41,7 @@ writetable(df, outputfolder + "\HSA_reprocessed.csv",...
 
 
 [dfaws.y, dfaws.m, dfaws.d] = ymd(dfaws.time);
-
+dfaws = dfaws(dfaws.m>5 & dfaws.m<9,:);
 fprintf("start reprocessing AWS data\n");
 awslist = unique(dfaws.aws);
 for i = 1:numel(awslist)
@@ -82,9 +82,12 @@ for i = 1:numel(awslist)
         if ~ismember(y, dfawssub.y)
             fprintf("year %d has no data\n", y);
             continue
-        elseif min(dfawssub.albedo)>=(0.565+0.109)
+        elseif min(dfawssub.albedo)>=0.565 %(0.565+0.109)
                 fprintf("year %d has no bare ice\n", y)
                 continue
+        elseif height(dfawssub)<42
+            fprintf("low data density, skipping \n"); % this is an empirical value
+            continue            
         else
             disp(y);
         end
@@ -100,6 +103,14 @@ for i = 1:numel(awslist)
         dfaws_reprocessed.albedo_rate(2:end) = diff(dfaws_reprocessed.albedo)./days(diff(dfaws_reprocessed.time));
         dfaws_reprocessed.height_diff = dfaws_reprocessed.z_pt_cor - dfaws_reprocessed.z_pt_cor(1);
         dfaws_reprocessed.height_rate(2:end) = diff(dfaws_reprocessed.z_pt_cor)./days(diff(dfaws_reprocessed.time));
+        dfaws_reprocessed.dod = zeros(height(dfaws_reprocessed), 1); % day of dark ice
+        index = find(dfaws_reprocessed.albedo<0.451, 1, "first");
+        if isempty(index)
+            dfaws_reprocessed.dod = nan(height(dfaws_reprocessed), 1);
+        else
+            dfaws_reprocessed.dod(1:index) = -(index-1):1:0;
+            dfaws_reprocessed.dod(index:end) = 0:1:height(dfaws_reprocessed)-index;
+        end
     
         writetable(removevars(dfaws_reprocessed, {'y', 'm', 'd'}), ...
             outputfolder + "\AWS_reprocessed.csv", ...

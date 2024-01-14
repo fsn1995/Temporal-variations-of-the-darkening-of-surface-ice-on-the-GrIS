@@ -7,8 +7,10 @@ if isstring(dfaws)
 end
 [dfaws.y, dfaws.m, dfaws.d] = ymd(dfaws.time);
 dfaws = dfaws(dfaws.m>5 & dfaws.m<9, :); % limit to JJA
-awsgroup = ["U", "M", "L", "G"];
-awsgroupColor = ["#186294", "#bd3162", "#cdb47b", "#41b4ee"]; % gyarados
+% awsgroup = ["U", "M", "L", "G"];
+% awsgroupColor = ["#186294", "#bd3162", "#cdb47b", "#41b4ee"]; % gyarados
+awsgroup = ["G", "L", "M", "U"];
+awsgroupColor = ["#41b4ee", "#cdb47b", "#bd3162", "#186294"]; % gyarados
 
 %% plot mean albedo over different AWS groups
 
@@ -31,13 +33,13 @@ albedo_change = dfstat.mean_albedo(TF);
 albedo_threshold = mean(albedo_change(2:3));
 
 f1 = figure;
-f1.Position = [488   245   917   417];
+f1.Position = [488   245   917   376];
 t = tiledlayout(1, 3, "TileSpacing","compact", "Padding","compact");
 ax1 = nexttile(t);
 A = imread("..\print\aoi.png");
 imshow(A);
 text(ax1, 80, 1600, "a)", "FontSize", 12, "Color", "w");
-ax2 = nexttile([1 2]);
+ax2 = nexttile([1 2]); %ax2 = nexttile([1 2]);
 plot(ax2, [time_change(1) time_change(1)], [0 albedo_change(1)], ...
     [dfstat.time(1) time_change(1)], [albedo_change(1) albedo_change(1)], ...
     [time_change(2) time_change(2)], [0 albedo_change(2)], ...
@@ -47,13 +49,14 @@ plot(ax2, [time_change(1) time_change(1)], [0 albedo_change(1)], ...
     "LineStyle", "-.", "LineWidth", 1, "Color", "k");
 hold on
 scatter(ax2, time_change, albedo_change, ...
-    "filled", "MarkerFaceColor", awsgroupColor(2));
+    "filled", "MarkerFaceColor", awsgroupColor(3));
 yline(ax2, albedo_threshold, '--', sprintf('\\alpha = %.3f', albedo_threshold),...
         'Color', 'k', 'LineWidth', 1.5, 'LabelHorizontalAlignment','right');
 plotAWSGroup(ax2, df, awsgroup, awsgroupColor);
 ax2.XTickLabel = ax2.XTickLabel;
 text(ax2, datetime(2023, 6, 3), 0.15, "b)", "FontSize", 12);
 ylim(ax2, [0.1 0.9]);
+ylabel(ax2, "albedo (\alpha)");
 fontsize(f1, 12, "points");
 exportgraphics(f1, "..\print\fig1_aoi.pdf", "Resolution", 300);
 
@@ -106,7 +109,7 @@ function plotAWSGroup(figax, df, awsgroup, awsgroupColor)
     %     'Color', 'k', 'LineWidth', 1);
     xlim([datetime(unique(df.y), 6, 1) datetime(unique(df.y), 8, 31)]);
     % hold off
-    legend(figax, ax(ax>0), "Location", "northoutside", "NumColumns", numel(awsgroup));
+    legend(figax, ax(ax>0), "NumColumns", numel(awsgroup));
     grid on
     % clearvars ax
 end
