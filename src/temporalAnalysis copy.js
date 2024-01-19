@@ -23,25 +23,22 @@ var yearOfInterest = 2019; // year of interest
 var date_start = ee.Date.fromYMD(yearOfInterest, 5, 31);
 var date_end = ee.Date.fromYMD(yearOfInterest, 9, 1);
 
-var roi = 'CE'; // region of interest
-var GrISRegion = ee.FeatureCollection("projects/ee-deeppurple/assets/GrISRegion");
-var aoi = GrISRegion.filter(ee.Filter.eq('SUBREGION1', roi)); // Greenland
-// var aoi = /* color: #ffc82d */ee.Geometry.Polygon(
-//   [[[-36.29516924635421, 83.70737243835941],
-//     [-51.85180987135421, 82.75597137647488],
-//     [-61.43188799635421, 81.99879137488564],
-//     [-74.08813799635422, 78.10103528196419],
-//     [-70.13305987135422, 75.65372336709613],
-//     [-61.08032549635421, 75.71891096312955],
-//     [-52.20337237135421, 60.9795530382023],
-//     [-43.41430987135421, 58.59235996703347],
-//     [-38.49243487135421, 64.70478286561182],
-//     [-19.771731746354217, 69.72271161037442],
-//     [-15.728762996354217, 76.0828635948066],
-//     [-15.904544246354217, 79.45091003031243],
-//     [-10.015872371354217, 81.62328742628017],
-//     [-26.627200496354217, 83.43179828852398],
-//     [-31.636966121354217, 83.7553561747887]]]); // whole greenland
+var aoi = /* color: #ffc82d */ee.Geometry.Polygon(
+  [[[-36.29516924635421, 83.70737243835941],
+    [-51.85180987135421, 82.75597137647488],
+    [-61.43188799635421, 81.99879137488564],
+    [-74.08813799635422, 78.10103528196419],
+    [-70.13305987135422, 75.65372336709613],
+    [-61.08032549635421, 75.71891096312955],
+    [-52.20337237135421, 60.9795530382023],
+    [-43.41430987135421, 58.59235996703347],
+    [-38.49243487135421, 64.70478286561182],
+    [-19.771731746354217, 69.72271161037442],
+    [-15.728762996354217, 76.0828635948066],
+    [-15.904544246354217, 79.45091003031243],
+    [-10.015872371354217, 81.62328742628017],
+    [-26.627200496354217, 83.43179828852398],
+    [-31.636966121354217, 83.7553561747887]]]); // whole greenland
 
 // Display AOI on the map.
 Map.centerObject(aoi, 4);
@@ -323,50 +320,50 @@ var multiSat = landsatCol.merge(s2Col).sort('system:time_start', true).map(funct
   return img.updateMask(greenlandmask);
 }); // Sort chronologically in descending order.
  
-// // convert multiSat to daily composite
-// // Difference in days between start and finish
-// var diff = date_end.difference(date_start, 'day');
+// convert multiSat to daily composite
+// Difference in days between start and finish
+var diff = date_end.difference(date_start, 'day');
 
-// // Make a list of all dates
-// var dayNum = 1; // steps of day number
-// var range = ee.List.sequence(0, diff.subtract(1), dayNum).map(function(day){return date_start.advance(day,'day')});
+// Make a list of all dates
+var dayNum = 1; // steps of day number
+var range = ee.List.sequence(0, diff.subtract(1), dayNum).map(function(day){return date_start.advance(day,'day')});
 
-// var day_mosaics = function(date, newlist) {
-//     // Cast
-//     date = ee.Date(date)
-//     newlist = ee.List(newlist)
+var day_mosaics = function(date, newlist) {
+    // Cast
+    date = ee.Date(date)
+    newlist = ee.List(newlist)
   
-//     // Filter collection between date and the next day
-//     var filtered = multiSat.filterDate(date, date.advance(dayNum,'day'));
+    // Filter collection between date and the next day
+    var filtered = multiSat.filterDate(date, date.advance(dayNum,'day'));
   
-//     // Make the mosaic
-//     var image = ee.Image(
-//         filtered.mean().copyProperties(filtered.first()))
-//         .set({date: date.format('yyyy-MM-dd')})
-//         .set('system:time_start', filtered.first().get('system:time_start'));
-//     // Add the mosaic to a list only if the collection has images
-//     return ee.List(ee.Algorithms.If(filtered.size(), newlist.add(image), newlist));
-//   };
-// var hsaDayCol = ee.ImageCollection(ee.List(range.iterate(day_mosaics, ee.List([]))));
-// // print(multiSat);
-// // var imgHSA = multiSat.mean().clip(aoi).updateMask(greenlandmask);
-// // var visParam = {min:0, max:1, bands:['Red', 'Green', 'Blue']};
-// // Map.addLayer(imgHSA, visParam, 'img');
+    // Make the mosaic
+    var image = ee.Image(
+        filtered.mean().copyProperties(filtered.first()))
+        .set({date: date.format('yyyy-MM-dd')})
+        .set('system:time_start', filtered.first().get('system:time_start'));
+    // Add the mosaic to a list only if the collection has images
+    return ee.List(ee.Algorithms.If(filtered.size(), newlist.add(image), newlist));
+  };
+var hsaDayCol = ee.ImageCollection(ee.List(range.iterate(day_mosaics, ee.List([]))));
+// print(multiSat);
+// var imgHSA = multiSat.mean().clip(aoi).updateMask(greenlandmask);
+// var visParam = {min:0, max:1, bands:['Red', 'Green', 'Blue']};
+// Map.addLayer(imgHSA, visParam, 'img');
 
 
 // Prepare a regularly-spaced Time-Series
 
 // Generate an empty multi-band image matching the bands
 // in the original collection
-var bandNames = ee.Image(multiSat.first()).bandNames();
+var bandNames = ee.Image(hsaDayCol.first()).bandNames();
 var numBands = bandNames.size();
 var initBands = ee.List.repeat(ee.Image(), numBands);
 var initImage = ee.ImageCollection(initBands).toBands().rename(bandNames);
 
 // Select the interval. We will have 1 image every n days
 var n = 1;
-var firstImage = ee.Image(multiSat.sort('system:time_start').first());
-var lastImage = ee.Image(multiSat.sort('system:time_start', false).first());
+var firstImage = ee.Image(hsaDayCol.sort('system:time_start').first());
+var lastImage = ee.Image(hsaDayCol.sort('system:time_start', false).first());
 var timeStart = ee.Date(firstImage.get('system:time_start'));
 var timeEnd = ee.Date(lastImage.get('system:time_start'));
 
@@ -387,13 +384,13 @@ var initCol = ee.ImageCollection.fromImages(initImages);
 // print('Empty Collection', initCol);
 
 // Merge original and empty collections
-var multiSat = multiSat.merge(initCol);
+var hsaDayCol = hsaDayCol.merge(initCol);
 
 // Interpolation
 
 // Add a band containing timestamp to each image
 // This will be used to do pixel-wise interpolation later
-var multiSat = multiSat.map(function(image) {
+var hsaDayCol = hsaDayCol.map(function(image) {
   var timeImage = image.metadata('system:time_start').rename('timestamp');
   // The time image doesn't have a mask. 
   // We set the mask of the time band to be the same as the first band of the image
@@ -456,8 +453,8 @@ var join1 = ee.Join.saveAll({
   ascending: false});
   
 var join1Result = join1.apply({
-  primary: multiSat,
-  secondary: multiSat,
+  primary: hsaDayCol,
+  secondary: hsaDayCol,
   condition: filter1
 });
 // Each image now as a property called 'after' containing
@@ -549,7 +546,7 @@ var regularCol = interpolatedCol.filter(ee.Filter.eq('type', 'interpolated'));
 var meanAlbedo = regularCol.select(['visnirAlbedo']).mean();
 Export.image.toAsset({
   image: meanAlbedo,
-  description: 'meanAlbedo' + yearOfInterest + roi,
+  description: 'meanAlbedo' + yearOfInterest,
   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/meanAlbedo_JJA' + yearOfInterest,
   region: aoi,
   scale: 30,
@@ -557,7 +554,7 @@ Export.image.toAsset({
 });
 // Export.image.toDrive({
 //   image: meanAlbedo,
-//   description: 'meanAlbedo' + yearOfInterest + roi,
+//   description: 'meanAlbedo' + yearOfInterest,
 //   folder: 'export',
 //   crs: 'EPSG:3411',
 //   region: aoi,
@@ -569,7 +566,7 @@ Export.image.toAsset({
 var minAlbedo = regularCol.select(['visnirAlbedo']).min();
 Export.image.toAsset({
   image: minAlbedo,
-  description: 'minAlbedo' + yearOfInterest + roi,
+  description: 'minAlbedo' + yearOfInterest,
   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/minAlbedo_JJA' + yearOfInterest,
   region: aoi,
   scale: 30,
@@ -577,7 +574,7 @@ Export.image.toAsset({
 });
 // Export.image.toDrive({
 //   image: minAlbedo,
-//   description: 'minAlbedo' + yearOfInterest + roi,
+//   description: 'minAlbedo' + yearOfInterest,
 //   folder: 'export',
 //   crs: 'EPSG:3411',
 //   region: aoi,
@@ -593,7 +590,7 @@ var bareIceDuration = regularCol.select(['visnirAlbedo']).map(function(img) {
 
 Export.image.toAsset({
   image: bareIceDuration,
-  description: 'bareIceDuration' + yearOfInterest + roi,
+  description: 'bareIceDuration' + yearOfInterest,
   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/bareIceDuration_JJA' + yearOfInterest,
   region: aoi,
   scale: 30,
@@ -601,7 +598,7 @@ Export.image.toAsset({
 });
 // Export.image.toDrive({
 //   image: bareIceDuration,
-//   description: 'bareIceDuration' + yearOfInterest + roi,
+//   description: 'bareIceDuration' + yearOfInterest,
 //   folder: 'export',
 //   crs: 'EPSG:3411',
 //   region: aoi,
@@ -617,7 +614,7 @@ var darkIceDuration = regularCol.select(['visnirAlbedo']).map(function(img) {
 
 Export.image.toAsset({
   image: darkIceDuration,
-  description: 'darkIceDuration'+ yearOfInterest + roi,
+  description: 'darkIceDuration'+ yearOfInterest,
   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/darkIceDuration_JJA' + yearOfInterest,
   region: aoi,
   scale: 30,
@@ -625,7 +622,7 @@ Export.image.toAsset({
 });
 // Export.image.toDrive({
 //   image: darkIceDuration,
-//   description: 'darkIceDuration'+ yearOfInterest + roi,
+//   description: 'darkIceDuration'+ yearOfInterest,
 //   folder: 'export',
 //   crs: 'EPSG:3411',
 //   region: aoi,

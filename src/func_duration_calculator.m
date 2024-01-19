@@ -1,4 +1,12 @@
 function imgoutput = func_duration_calculator(dfaws,dfhsa,imgoutput,statoutput)
+% func_duration_calculator calculates the duration of bare ice and dark ice
+% for each AWS and HSA.
+% When HSA data are available, the function will plot the AWS and HSA, and the
+% interpolated HSA data.
+%   dfaws: dataframe of AWS data
+%   dfhsa: dataframe of HSA data
+%   imgoutput: output file path of the figure
+%   statoutput: output file path of the statistics
 
 %  Shunan Feng (shunan.feng@envs.au.dk)
 

@@ -1,7 +1,13 @@
 function [f1] = func_threshold_analysis(dfaws)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
-% check input variable
+% func_threshold_analysis plot mean albedo +- 1 std over different AWS groups
+% It also detects abrupt change in mean albedo and plot the change points
+%   Input:
+%       dfaws: table, output from data preprocessing
+%   Output:
+%       f1: figure handle
+%   
+% Shunan Feng (shunan.feng@envs.au.dk)
+
 if isstring(dfaws)
     dfaws = readtable(dfaws);
 end
