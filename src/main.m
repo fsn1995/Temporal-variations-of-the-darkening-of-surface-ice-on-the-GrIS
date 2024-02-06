@@ -53,4 +53,6 @@
 %     "..\print", "..\stat");
 
 
-
+%% albedo maps
+[imcount] = func_buildmosaic("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\GrISdailyAlbedoChip", ...
+    "O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\GrISdailyAlbedoMosaic");

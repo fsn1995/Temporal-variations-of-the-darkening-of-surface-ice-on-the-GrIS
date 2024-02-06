@@ -21,9 +21,9 @@ shunan.feng@envs.au.dk
 var yearOfInterest = 2019; // year of interest
 
 var date_start = ee.Date.fromYMD(yearOfInterest, 6, 1);
-var date_end = ee.Date.fromYMD(yearOfInterest, 7, 1);
+var date_end = ee.Date.fromYMD(yearOfInterest, 9, 1);
 
-// var roi = 'SW'; // region of interest
+var roi = 'GrIS'; // region of interest
 // var GrISRegion = ee.FeatureCollection("projects/ee-deeppurple/assets/GrISRegion");
 // var aoi = GrISRegion.filter(ee.Filter.eq('SUBREGION1', roi)); // Greenland
 var aoi = /* color: #ffc82d */ee.Geometry.Polygon(
@@ -322,6 +322,18 @@ var s2Col = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
 var landsatCol = oliCol.merge(etmCol).merge(tmCol).merge(tm4Col).merge(oli2Col);
 var multiSat = landsatCol.merge(s2Col).sort('system:time_start', true); // Sort chronologically in descending order.
  
+// var hsaimg = multiSat.mean().updateMask(iceMask).multiply(10000).toUint16();
+
+// Export.image.toDrive({
+//   image: hsaimg,
+//   description: 'albedo_' + imdate,
+//   folder: 'export',
+//   crs: 'EPSG:3411',
+//   region: aoi,
+//   scale: 30,
+//   maxPixels: 1e13,
+//   fileFormat: 'GeoTIFF'
+// });
 // convert multiSat to daily composite
 // Difference in days between start and finish
 var diff = date_end.difference(date_start, 'day');
@@ -347,23 +359,23 @@ var day_mosaics = function(date, newlist) {
     return ee.List(ee.Algorithms.If(filtered.size(), newlist.add(image), newlist));
   };
 var hsaDayCol = ee.ImageCollection(ee.List(range.iterate(day_mosaics, ee.List([])))).map(function(img){
-  return img.updateMask(iceMask).multiply(10000).toUint16();
+  return img.updateMask(iceMask);
 });
-// print(multiSat);
-// var imgHSA = multiSat.mean().clip(aoi).updateMask(greenlandmask);
-// var visParam = {min:0, max:1, bands:['Red', 'Green', 'Blue']};
-// Map.addLayer(imgHSA, visParam, 'img');
+// // print(multiSat);
+// // var imgHSA = multiSat.mean().clip(aoi).updateMask(greenlandmask);
+// // var visParam = {min:0, max:1, bands:['Red', 'Green', 'Blue']};
+// // Map.addLayer(imgHSA, visParam, 'img');
 
-var batch = require('users/fitoprincipe/geetools:batch');
+// var batch = require('users/fitoprincipe/geetools:batch');
 
-// batch export
-batch.Download.ImageCollection.toDrive(hsaDayCol.select(['visnirAlbedo']), 'export', 
-                {scale: 30, 
-                 region: aoi, 
-                 crs: 'EPSG:3411',
-                 type: 'uint16',
-                 name: 'albedo_{system_date}'
-                });
+// // batch export
+// batch.Download.ImageCollection.toDrive(hsaDayCol.select(['visnirAlbedo']), 'export', 
+//                 {scale: 30, 
+//                  region: aoi, 
+//                  crs: 'EPSG:3411',
+//                  type: 'uint16',
+//                  name: 'albedo_{system_date}'
+//                 });
 // batch.Download.ImageCollection.toAsset(hsaDayCol.select(['visnirAlbedo']), 'projects/ee-deeppurple/assets/TemporalAnalysis/albedo_JJA' + yearOfInterest,
 //                 {scale: 30,
 //                   region: aoi,
@@ -371,281 +383,281 @@ batch.Download.ImageCollection.toDrive(hsaDayCol.select(['visnirAlbedo']), 'expo
 //                   type: 'uint16',
 //                   name: 'albedo_{system_date}'
 //                 });
-// // Prepare a regularly-spaced Time-Series
+// Prepare a regularly-spaced Time-Series
 
-// // Generate an empty multi-band image matching the bands
-// // in the original collection
-// var bandNames = ee.Image(multiSat.first()).bandNames();
-// var numBands = bandNames.size();
-// var initBands = ee.List.repeat(ee.Image(), numBands);
-// var initImage = ee.ImageCollection(initBands).toBands().rename(bandNames);
+// Generate an empty multi-band image matching the bands
+// in the original collection
+var bandNames = ee.Image(hsaDayCol.first()).bandNames();
+var numBands = bandNames.size();
+var initBands = ee.List.repeat(ee.Image(), numBands);
+var initImage = ee.ImageCollection(initBands).toBands().rename(bandNames);
 
-// // Select the interval. We will have 1 image every n days
-// var n = 1;
-// var firstImage = ee.Image(multiSat.sort('system:time_start').first());
-// var lastImage = ee.Image(multiSat.sort('system:time_start', false).first());
-// var timeStart = ee.Date(firstImage.get('system:time_start'));
-// var timeEnd = ee.Date(lastImage.get('system:time_start'));
+// Select the interval. We will have 1 image every n days
+var n = 1;
+var firstImage = ee.Image(hsaDayCol.sort('system:time_start').first());
+var lastImage = ee.Image(hsaDayCol.sort('system:time_start', false).first());
+var timeStart = ee.Date(firstImage.get('system:time_start'));
+var timeEnd = ee.Date(lastImage.get('system:time_start'));
 
-// var totalDays = timeEnd.difference(timeStart, 'day');
-// var daysToInterpolate = ee.List.sequence(0, totalDays, n);
+var totalDays = timeEnd.difference(timeStart, 'day');
+var daysToInterpolate = ee.List.sequence(0, totalDays, n);
 
-// var initImages = daysToInterpolate.map(function(day) {
-//   var image = initImage.set({
-//     'system:index': ee.Number(day).format('%d'),
-//     'system:time_start': timeStart.advance(day, 'day').millis(),
-//     // Set a property so we can identify interpolated images
-//     'type': 'interpolated'
-//   });
-//   return image;
-// });
+var initImages = daysToInterpolate.map(function(day) {
+  var image = initImage.set({
+    'system:index': ee.Number(day).format('%d'),
+    'system:time_start': timeStart.advance(day, 'day').millis(),
+    // Set a property so we can identify interpolated images
+    'type': 'interpolated'
+  });
+  return image;
+});
 
-// var initCol = ee.ImageCollection.fromImages(initImages);
-// // print('Empty Collection', initCol);
+var initCol = ee.ImageCollection.fromImages(initImages);
+// print('Empty Collection', initCol);
 
-// // Merge original and empty collections
-// var multiSat = multiSat.merge(initCol);
+// Merge original and empty collections
+var multiSat = multiSat.merge(initCol);
 
-// // Interpolation
+// Interpolation
 
-// // Add a band containing timestamp to each image
-// // This will be used to do pixel-wise interpolation later
-// var multiSat = multiSat.map(function(image) {
-//   var timeImage = image.metadata('system:time_start').rename('timestamp');
-//   // The time image doesn't have a mask. 
-//   // We set the mask of the time band to be the same as the first band of the image
-//   var timeImageMasked = timeImage.updateMask(image.mask().select(0));
-//   return image.addBands(timeImageMasked).toFloat();
-// });
+// Add a band containing timestamp to each image
+// This will be used to do pixel-wise interpolation later
+var multiSat = multiSat.map(function(image) {
+  var timeImage = image.metadata('system:time_start').rename('timestamp');
+  // The time image doesn't have a mask. 
+  // We set the mask of the time band to be the same as the first band of the image
+  var timeImageMasked = timeImage.updateMask(image.mask().select(0));
+  return image.addBands(timeImageMasked).toFloat();
+});
 
-// // For each image in the collection, we need to find all images
-// // before and after the specified time-window
+// For each image in the collection, we need to find all images
+// before and after the specified time-window
 
-// // This is accomplished using Joins
-// // We need to do 2 joins
-// // Join 1: Join the collection with itself to find all images before each image
-// // Join 2: Join the collection with itself to find all images after each image
+// This is accomplished using Joins
+// We need to do 2 joins
+// Join 1: Join the collection with itself to find all images before each image
+// Join 2: Join the collection with itself to find all images after each image
 
-// // We first define the filters needed for the join
+// We first define the filters needed for the join
 
-// // Define a maxDifference filter to find all images within the specified days
-// // The filter needs the time difference in milliseconds
-// // Convert days to milliseconds
+// Define a maxDifference filter to find all images within the specified days
+// The filter needs the time difference in milliseconds
+// Convert days to milliseconds
 
-// // Specify the time-window to look for unmasked pixel
-// var days = 4;
-// var millis = ee.Number(days).multiply(1000*60*60*24);
+// Specify the time-window to look for unmasked pixel
+var days = 4;
+var millis = ee.Number(days).multiply(1000*60*60*24);
 
-// var maxDiffFilter = ee.Filter.maxDifference({
-//   difference: millis,
-//   leftField: 'system:time_start',
-//   rightField: 'system:time_start'
-// });
+var maxDiffFilter = ee.Filter.maxDifference({
+  difference: millis,
+  leftField: 'system:time_start',
+  rightField: 'system:time_start'
+});
 
-// // We need a lessThanOrEquals filter to find all images after a given image
-// // This will compare the given image's timestamp against other images' timestamps
-// var lessEqFilter = ee.Filter.lessThanOrEquals({
-//   leftField: 'system:time_start',
-//   rightField: 'system:time_start'
-// });
+// We need a lessThanOrEquals filter to find all images after a given image
+// This will compare the given image's timestamp against other images' timestamps
+var lessEqFilter = ee.Filter.lessThanOrEquals({
+  leftField: 'system:time_start',
+  rightField: 'system:time_start'
+});
 
-// // We need a greaterThanOrEquals filter to find all images before a given image
-// // This will compare the given image's timestamp against other images' timestamps
-// var greaterEqFilter = ee.Filter.greaterThanOrEquals({
-//   leftField: 'system:time_start',
-//   rightField: 'system:time_start'
-// });
+// We need a greaterThanOrEquals filter to find all images before a given image
+// This will compare the given image's timestamp against other images' timestamps
+var greaterEqFilter = ee.Filter.greaterThanOrEquals({
+  leftField: 'system:time_start',
+  rightField: 'system:time_start'
+});
 
 
-// // Apply the joins
+// Apply the joins
 
-// // For the first join, we need to match all images that are after the given image.
-// // To do this we need to match 2 conditions
-// // 1. The resulting images must be within the specified time-window of target image
-// // 2. The target image's timestamp must be lesser than the timestamp of resulting images
-// // Combine two filters to match both these conditions
-// var filter1 = ee.Filter.and(maxDiffFilter, lessEqFilter);
-// // This join will find all images after, sorted in descending order
-// // This will gives us images so that closest is last
-// var join1 = ee.Join.saveAll({
-//   matchesKey: 'after',
-//   ordering: 'system:time_start',
-//   ascending: false});
+// For the first join, we need to match all images that are after the given image.
+// To do this we need to match 2 conditions
+// 1. The resulting images must be within the specified time-window of target image
+// 2. The target image's timestamp must be lesser than the timestamp of resulting images
+// Combine two filters to match both these conditions
+var filter1 = ee.Filter.and(maxDiffFilter, lessEqFilter);
+// This join will find all images after, sorted in descending order
+// This will gives us images so that closest is last
+var join1 = ee.Join.saveAll({
+  matchesKey: 'after',
+  ordering: 'system:time_start',
+  ascending: false});
   
-// var join1Result = join1.apply({
-//   primary: multiSat,
-//   secondary: multiSat,
-//   condition: filter1
-// });
-// // Each image now as a property called 'after' containing
-// // all images that come after it within the time-window
-// // print(join1Result.first());
+var join1Result = join1.apply({
+  primary: multiSat,
+  secondary: multiSat,
+  condition: filter1
+});
+// Each image now as a property called 'after' containing
+// all images that come after it within the time-window
+// print(join1Result.first());
 
-// // Do the second join now to match all images within the time-window
-// // that come before each image
-// var filter2 = ee.Filter.and(maxDiffFilter, greaterEqFilter);
-// // This join will find all images before, sorted in ascending order
-// // This will gives us images so that closest is last
-// var join2 = ee.Join.saveAll({
-//   matchesKey: 'before',
-//   ordering: 'system:time_start',
-//   ascending: true});
+// Do the second join now to match all images within the time-window
+// that come before each image
+var filter2 = ee.Filter.and(maxDiffFilter, greaterEqFilter);
+// This join will find all images before, sorted in ascending order
+// This will gives us images so that closest is last
+var join2 = ee.Join.saveAll({
+  matchesKey: 'before',
+  ordering: 'system:time_start',
+  ascending: true});
   
-// var join2Result = join2.apply({
-//   primary: join1Result,
-//   secondary: join1Result,
-//   condition: filter2
-// });
+var join2Result = join2.apply({
+  primary: join1Result,
+  secondary: join1Result,
+  condition: filter2
+});
 
-// // Each image now as a property called 'before' containing
-// // all images that come after it within the time-window
-// // print(join2Result.first());
+// Each image now as a property called 'before' containing
+// all images that come after it within the time-window
+// print(join2Result.first());
 
-// var joinedCol = join2Result;
+var joinedCol = join2Result;
 
-// // Do the interpolation
+// Do the interpolation
 
-// // We now write a function that will be used to interpolate all images
-// // This function takes an image and replaces the masked pixels
-// // with the interpolated value from before and after images.
+// We now write a function that will be used to interpolate all images
+// This function takes an image and replaces the masked pixels
+// with the interpolated value from before and after images.
 
-// var interpolateImages = function(image) {
-//   var image = ee.Image(image);
-//   // We get the list of before and after images from the image property
-//   // Mosaic the images so we a before and after image with the closest unmasked pixel
-//   var beforeImages = ee.List(image.get('before'));
-//   var beforeMosaic = ee.ImageCollection.fromImages(beforeImages).mosaic();
-//   var afterImages = ee.List(image.get('after'));
-//   var afterMosaic = ee.ImageCollection.fromImages(afterImages).mosaic();
+var interpolateImages = function(image) {
+  var image = ee.Image(image);
+  // We get the list of before and after images from the image property
+  // Mosaic the images so we a before and after image with the closest unmasked pixel
+  var beforeImages = ee.List(image.get('before'));
+  var beforeMosaic = ee.ImageCollection.fromImages(beforeImages).mosaic();
+  var afterImages = ee.List(image.get('after'));
+  var afterMosaic = ee.ImageCollection.fromImages(afterImages).mosaic();
 
-//   // Interpolation formula
-//   // y = y1 + (y2-y1)*((t – t1) / (t2 – t1))
-//   // y = interpolated image
-//   // y1 = before image
-//   // y2 = after image
-//   // t = interpolation timestamp
-//   // t1 = before image timestamp
-//   // t2 = after image timestamp
+  // Interpolation formula
+  // y = y1 + (y2-y1)*((t – t1) / (t2 – t1))
+  // y = interpolated image
+  // y1 = before image
+  // y2 = after image
+  // t = interpolation timestamp
+  // t1 = before image timestamp
+  // t2 = after image timestamp
   
-//   // We first compute the ratio (t – t1) / (t2 – t1)
+  // We first compute the ratio (t – t1) / (t2 – t1)
 
-//   // Get image with before and after times
-//   var t1 = beforeMosaic.select('timestamp').rename('t1');
-//   var t2 = afterMosaic.select('timestamp').rename('t2');
+  // Get image with before and after times
+  var t1 = beforeMosaic.select('timestamp').rename('t1');
+  var t2 = afterMosaic.select('timestamp').rename('t2');
 
-//   var t = image.metadata('system:time_start').rename('t');
+  var t = image.metadata('system:time_start').rename('t');
 
-//   var timeImage = ee.Image.cat([t1, t2, t]);
+  var timeImage = ee.Image.cat([t1, t2, t]);
 
-//   var timeRatio = timeImage.expression('(t - t1) / (t2 - t1)', {
-//     't': timeImage.select('t'),
-//     't1': timeImage.select('t1'),
-//     't2': timeImage.select('t2'),
-//   });
-//   // You can replace timeRatio with a constant value 0.5
-//   // if you wanted a simple average
+  var timeRatio = timeImage.expression('(t - t1) / (t2 - t1)', {
+    't': timeImage.select('t'),
+    't1': timeImage.select('t1'),
+    't2': timeImage.select('t2'),
+  });
+  // You can replace timeRatio with a constant value 0.5
+  // if you wanted a simple average
   
-//   // Compute an image with the interpolated image y
-//   var interpolated = beforeMosaic
-//     .add((afterMosaic.subtract(beforeMosaic).multiply(timeRatio)));
-//   // Replace the masked pixels in the current image with the average value
-//   var result = image.unmask(interpolated);
-//   return result.copyProperties(image, ['system:time_start']);
-// };
+  // Compute an image with the interpolated image y
+  var interpolated = beforeMosaic
+    .add((afterMosaic.subtract(beforeMosaic).multiply(timeRatio)));
+  // Replace the masked pixels in the current image with the average value
+  var result = image.unmask(interpolated);
+  return result.copyProperties(image, ['system:time_start']);
+};
 
-// // map() the function to interpolate all images in the collection
-// var interpolatedCol = ee.ImageCollection(joinedCol.map(interpolateImages));
+// map() the function to interpolate all images in the collection
+var interpolatedCol = ee.ImageCollection(joinedCol.map(interpolateImages));
 
-// // Once the interpolation are done, remove original images
-// // We keep only the generated interpolated images
-// var regularCol = interpolatedCol.filter(ee.Filter.eq('type', 'interpolated'));
+// Once the interpolation are done, remove original images
+// We keep only the generated interpolated images
+var regularCol = interpolatedCol.filter(ee.Filter.eq('type', 'interpolated'));
 
 
 
-// // export the mean albedo (visnirAlbedo) of the interpolated time series to EE asset and google drive
-// var meanAlbedo = regularCol.select(['visnirAlbedo']).mean();
-// Export.image.toAsset({
+// export the mean albedo (visnirAlbedo) of the interpolated time series to EE asset and google drive
+var meanAlbedo = regularCol.select(['visnirAlbedo']).mean();
+Export.image.toAsset({
+  image: meanAlbedo,
+  description: 'meanAlbedo' + yearOfInterest + roi,
+  assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/meanAlbedo_JJA' + yearOfInterest,
+  region: aoi,
+  scale: 30,
+  maxPixels: 1e13
+});
+// Export.image.toDrive({
 //   image: meanAlbedo,
 //   description: 'meanAlbedo' + yearOfInterest + roi,
-//   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/meanAlbedo_JJA' + yearOfInterest,
+//   folder: 'export',
+//   crs: 'EPSG:3411',
 //   region: aoi,
 //   scale: 30,
 //   maxPixels: 1e13
 // });
-// // Export.image.toDrive({
-// //   image: meanAlbedo,
-// //   description: 'meanAlbedo' + yearOfInterest + roi,
-// //   folder: 'export',
-// //   crs: 'EPSG:3411',
-// //   region: aoi,
-// //   scale: 30,
-// //   maxPixels: 1e13
-// // });
 
-// // export the min albedo (visnirAlbedo) of the interpolated time series to EE asset and google drive
-// var minAlbedo = regularCol.select(['visnirAlbedo']).min();
-// Export.image.toAsset({
+// export the min albedo (visnirAlbedo) of the interpolated time series to EE asset and google drive
+var minAlbedo = regularCol.select(['visnirAlbedo']).min();
+Export.image.toAsset({
+  image: minAlbedo,
+  description: 'minAlbedo' + yearOfInterest + roi,
+  assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/minAlbedo_JJA' + yearOfInterest,
+  region: aoi,
+  scale: 30,
+  maxPixels: 1e13
+});
+// Export.image.toDrive({
 //   image: minAlbedo,
 //   description: 'minAlbedo' + yearOfInterest + roi,
-//   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/minAlbedo_JJA' + yearOfInterest,
+//   folder: 'export',
+//   crs: 'EPSG:3411',
 //   region: aoi,
 //   scale: 30,
 //   maxPixels: 1e13
 // });
-// // Export.image.toDrive({
-// //   image: minAlbedo,
-// //   description: 'minAlbedo' + yearOfInterest + roi,
-// //   folder: 'export',
-// //   crs: 'EPSG:3411',
-// //   region: aoi,
-// //   scale: 30,
-// //   maxPixels: 1e13
-// // });
 
-// // bare ice duaration is defined as the number of days with albedo < 0.565
-// // export the bare ice duration of the interpolated time series to EE asset and google drive
-// var bareIceDuration = regularCol.select(['visnirAlbedo']).map(function(img) {
-//   return img.updateMask(img.lt(0.565));
-// }).count();
+// bare ice duaration is defined as the number of days with albedo < 0.565
+// export the bare ice duration of the interpolated time series to EE asset and google drive
+var bareIceDuration = regularCol.select(['visnirAlbedo']).map(function(img) {
+  return img.updateMask(img.lt(0.565));
+}).count();
 
-// Export.image.toAsset({
+Export.image.toAsset({
+  image: bareIceDuration,
+  description: 'bareIceDuration' + yearOfInterest + roi,
+  assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/bareIceDuration_JJA' + yearOfInterest,
+  region: aoi,
+  scale: 30,
+  maxPixels: 1e13
+});
+// Export.image.toDrive({
 //   image: bareIceDuration,
 //   description: 'bareIceDuration' + yearOfInterest + roi,
-//   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/bareIceDuration_JJA' + yearOfInterest,
+//   folder: 'export',
+//   crs: 'EPSG:3411',
 //   region: aoi,
 //   scale: 30,
 //   maxPixels: 1e13
 // });
-// // Export.image.toDrive({
-// //   image: bareIceDuration,
-// //   description: 'bareIceDuration' + yearOfInterest + roi,
-// //   folder: 'export',
-// //   crs: 'EPSG:3411',
-// //   region: aoi,
-// //   scale: 30,
-// //   maxPixels: 1e13
-// // });
 
-// // dark ice duaration is defined as the number of days with albedo < 0.451
-// // export the dark ice duration of the interpolated time series to EE asset and google drive
-// var darkIceDuration = regularCol.select(['visnirAlbedo']).map(function(img) {
-//   return img.updateMask(img.lt(0.451));
-// }).count();
+// dark ice duaration is defined as the number of days with albedo < 0.451
+// export the dark ice duration of the interpolated time series to EE asset and google drive
+var darkIceDuration = regularCol.select(['visnirAlbedo']).map(function(img) {
+  return img.updateMask(img.lt(0.451));
+}).count();
 
-// Export.image.toAsset({
+Export.image.toAsset({
+  image: darkIceDuration,
+  description: 'darkIceDuration'+ yearOfInterest + roi,
+  assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/darkIceDuration_JJA' + yearOfInterest,
+  region: aoi,
+  scale: 30,
+  maxPixels: 1e13
+});
+// Export.image.toDrive({
 //   image: darkIceDuration,
 //   description: 'darkIceDuration'+ yearOfInterest + roi,
-//   assetId: 'projects/ee-deeppurple/assets/TemporalAnalysis/darkIceDuration_JJA' + yearOfInterest,
+//   folder: 'export',
+//   crs: 'EPSG:3411',
 //   region: aoi,
 //   scale: 30,
 //   maxPixels: 1e13
 // });
-// // Export.image.toDrive({
-// //   image: darkIceDuration,
-// //   description: 'darkIceDuration'+ yearOfInterest + roi,
-// //   folder: 'export',
-// //   crs: 'EPSG:3411',
-// //   region: aoi,
-// //   scale: 30,
-// //   maxPixels: 1e13
-// // });
