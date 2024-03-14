@@ -1,14 +1,18 @@
 /*
-This tutorial is made to demonstrate the workflow of harmonizing Landsat 4-7 and Sentinel 2 to Landsat 8 
-time series of datasets.
-It will display the charts of the harmonized satellite albedo (All Observations) and original albedo 
-(All Observations Original).
-The linear trendline will be plotted on a separate chart. 
+This script is used to generate the mean, min, bare ice duration and dark ice duration of the albedo time 
+series for the whole Greenland in the summer (June, July, August) of a specific year.
+The albedo time series is generated from the harmonized satellite data including Landsat 4/5/7/8, Sentinel 2.
+The albedo is calculated from the visible and near-infrared bands of the satellite data.
+The bare ice duration is defined as the number of days with albedo < 0.565.
+The dark ice duration is defined as the number of days with albedo < 0.451.
+The mean albedo is the mean value of the albedo time series.
+The min albedo is the minimum value of the albedo time series.
+The albedo time series is interpolated to daily composite.
+The output is exported to Google Drive and Earth Engine asset.
+The output is used to analyze the temporal variation of the albedo in the summer of Greenland.
 
-ref:
-This script is adapted from the excellent tutorial made by Justin Braaten.
-https://github.com/jdbcode
-https://developers.google.com/earth-engine/tutorials/community/landsat-etm-to-oli-harmonization
+However, timeout error forced me to change the workflow to export the intermediate results to Google Drive
+for further processing and analysis.
 
 Shunan Feng
 shunan.feng@envs.au.dk

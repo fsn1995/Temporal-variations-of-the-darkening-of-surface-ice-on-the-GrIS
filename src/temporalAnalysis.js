@@ -1,14 +1,10 @@
 /*
-This tutorial is made to demonstrate the workflow of harmonizing Landsat 4-7 and Sentinel 2 to Landsat 8 
-time series of datasets.
-It will display the charts of the harmonized satellite albedo (All Observations) and original albedo 
-(All Observations Original).
-The linear trendline will be plotted on a separate chart. 
-
-ref:
-This script is adapted from the excellent tutorial made by Justin Braaten.
-https://github.com/jdbcode
-https://developers.google.com/earth-engine/tutorials/community/landsat-etm-to-oli-harmonization
+This script is used to prepare harmonized satellite data for the whole Greenland in June, July, and August (JJA) of a specific year. 
+The harmonized satellite data includes Landsat 4, 5, 7, 8, 9 and Sentinel 2. The harmonized satellite data is used to calculate the 
+daily albedo, which can be exported to Google Drive and Earth Engine asset.
+The bare ice duration and dark ice duration can also be calculated and exported to Google Drive and Earth Engine asset. 
+But the related codes are commented out due to the limitation of the Earth Engine computation resources.
+Smaller areas would be more efficient for computation and export.
 
 Shunan Feng
 shunan.feng@envs.au.dk
@@ -18,14 +14,12 @@ shunan.feng@envs.au.dk
  * Intial parameters
  */
 
-// var yearOfInterest = 2019; // year of interest
-
 var date_start = ee.Date.fromYMD(2019, 6, 1);
 var date_end = date_start.advance(1, 'day');
 var imdate = date_start.format('YYYY-MM-dd');
 imdate = imdate.getInfo();
 
-// var roi = 'SW'; // region of interest
+// var roi = 'SW'; // region of interest if needed
 // var GrISRegion = ee.FeatureCollection("projects/ee-deeppurple/assets/GrISRegion");
 // var aoi = GrISRegion.filter(ee.Filter.eq('SUBREGION1', roi)); // Greenland
 var aoi = /* color: #ffc82d */ee.Geometry.Polygon(
@@ -54,6 +48,7 @@ var greenlandmask = ee.Image('OSU/GIMP/2000_ICE_OCEAN_MASK')
                       .select('ice_mask').eq(1); //'ice_mask', 'ocean_mask'
 var elevation = ee.Image('OSU/GIMP/DEM').select('elevation').updateMask(greenlandmask);
 var iceMask = elevation.lt(2000); // ice mask is defined as elevation < 2000 m and ice mask = 1
+
 /*
 prepare harmonized satellite data
 */
