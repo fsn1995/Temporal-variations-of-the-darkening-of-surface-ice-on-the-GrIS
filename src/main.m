@@ -29,14 +29,14 @@
 
 %% Data analysis
 % % analyze albeod threshold
-[~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv");
+% [~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv");
 
 % % duration analysis
-% [~] = func_duration_calculator("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
-%     "H:\AU\promiceaws\output\HSA_reprocessed.csv", ...
-%     "..\print", "..\stat");
+[~] = func_duration_calculator("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
+    "H:\AU\promiceaws\output\HSA_reprocessed.csv", ...
+    "..\print", "..\stat");
 
-% [~] = func_duration_analysis("..\stat\icestats.xlsx", "..\print");
+[~] = func_duration_analysis("..\stat\icestats.xlsx", "..\print");
 
 
 % plot albedo vs HSA, and interpolated HSA
@@ -54,9 +54,9 @@
 
 
 %% albedo maps
-[imcount] = func_iminterp("/data/shunan/data/GrISdailyAlbedoChip", ...
-    "/data/shunan/data/GrISdailyAlbedoChipInterp");
-close all
-clearvars
-% [imcount] = func_buildmosaic("/data/shunan/data/GrISdailyAlbedoChip", ...
-%     "/data/shunan/data/GrISdailyAlbedoMosaic");
+% [imcount] = func_iminterp("/data/shunan/data/GrISdailyAlbedoChip", ...
+%     "/data/shunan/data/GrISdailyAlbedoChipInterp");
+% close all
+% clearvars
+[imcount] = func_buildmosaic("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\GrISdailyAlbedoChip", ...
+    "H:\AU\GrISdailyAlbedoMosaic");

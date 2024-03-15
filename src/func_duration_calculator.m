@@ -143,14 +143,14 @@ for i = 1:numel(awslist)
         dfstat.awsgroup = unique(dfawssub.awsgroup(~isnan(dfawssub.albedo)));
         dfstat.y = y;
         dfstat.num = sum(~isnan(dfawsplot.hsa));
-        dfawsplot.hsa = fillmissing(dfawsplot.hsa, "linear");
+        % dfawsplot.hsa = fillmissing(dfawsplot.hsa, "linear");
         dfstat.hsa = mean(dfawsplot.hsa,"all", "omitmissing");
-        dfstat.duration_bareice = numel(find(dfawsplot.hsa<0.565));
-        dfstat.duration_darkice = numel(find(dfawsplot.hsa<0.451));
+        dfstat.duration_bareice = 0; % occupy space
+        dfstat.duration_darkice = 0; % occupy space
         index = find(dfawsplot.hsa<0.565, 1, "first");
         dfstat.bare_1stday = dfawsplot.time(index);
         index = find(dfawsplot.hsa<0.565, 1, "last");
-        dfstat.bard_lastday = dfawsplot.time(index);
+        dfstat.bare_lastday = dfawsplot.time(index);
         index = find(dfawsplot.hsa<0.451, 1, "first");
         if isempty(index)
             dfstat.dark_1stday = nan;
@@ -160,6 +160,8 @@ for i = 1:numel(awslist)
             index = find(dfawsplot.hsa<0.451, 1, "last");
             dfstat.dark_lastday = dfawsplot.time(index);
         end
+        dfstat.duration_bareice = daysact(dfstat.bare_1stday, dfstat.bare_lastday);
+        dfstat.duration_darkice = daysact(dfstat.dark_1stday, dfstat.dark_lastday);
         writetable(dfstat, statoutput+'/icestats.xlsx', 'sheet', 'HSA',...
             'WriteVariableNames', false, 'WriteMode', 'append');
         
@@ -201,7 +203,7 @@ for i = 1:numel(awslist)
         index = find(dfawsplot.albedo<0.565, 1, "first");
         dfstat.bare_1stday = dfawsplot.time(index);
         index = find(dfawsplot.albedo<0.565, 1, "last");
-        dfstat.bard_lastday = dfawsplot.time(index);
+        dfstat.bare_lastday = dfawsplot.time(index);
         index = find(dfawsplot.albedo<0.451, 1, "first");
         if isempty(index)
             dfstat.dark_1stday = nan;

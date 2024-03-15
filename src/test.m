@@ -1,6 +1,6 @@
 %% test image mosaic with matlab
-[imcount] = func_iminterp("/data/shunan/data/GrISdailyAlbedoChip", ...
-    "/data/shunan/data/GrISdailyAlbedoChipInterp");
+[imcount] = func_iminterp("H:\AU\GrISdailyAlbedoChip", ...
+    "H:\AU\GrISdailyAlbedoChipInterpolated");
 close all
 clearvars
 
