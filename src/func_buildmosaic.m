@@ -1,14 +1,14 @@
 function [imcount] = func_buildmosaic(inputfolder,outputfolder)
 %FUNC_BUILDMOSAIC Summary of this function goes here
 %   Detailed explanation goes here
-imfiles = dir(inputfolder + "\*.tif");
+imfiles = dir(inputfolder + "/*.tif");
 imnames = string(extractfield(imfiles, "name")');
 imnames = extractBefore(imnames, "-0000");
 index = findgroups(imnames);
 indexUnique = unique(index);
 imnamesUnique = unique(imnames);
 
-for i = 1:max(indexUnique)
+parfor i = 1:max(indexUnique)
     fprintf("processing %s\n", imnamesUnique(i));
     imselect = index == i;
     mosaicfiles = imfiles(imselect, :);
@@ -28,6 +28,6 @@ for i = 1:max(indexUnique)
         immosaic, mosaicR, "CoordRefSysCode", 3413);
     
 end
-imcount = height(dir(outputfolder + "\*.tif"));
+imcount = height(dir(outputfolder + "/*.tif"));
 end
 

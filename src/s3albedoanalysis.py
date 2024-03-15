@@ -7,16 +7,16 @@ import glob
 def add_time_dim(xda):
     img_name = xda.encoding["source"]
     img_datetime = img_name.replace("sice_500_", "").replace(".nc", "")
-    img_datetime = img_datetime.split("\\")[-1]
+    img_datetime = img_datetime.split("/")[-1]
     # dt = datetime.strptime(img_datetime, "%Y-%m-%d")
     dt = pd.to_datetime(img_datetime, format="%Y_%m_%d")
 
     xda = xda.expand_dims(time=[dt])
     return xda
 
-images = sorted(glob.glob(r"O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo\*.nc"))
+images = sorted(glob.glob("/data/shunan/data/SICEdata/*.nc"))
 images_year = [image.replace("sice_500_", "").replace(".nc", "") for image in images]
-images_year = [image.split("\\")[-1] for image in images_year]
+images_year = [image.split("/")[-1] for image in images_year]
 images_year = [image.split("_")[0] for image in images_year]
 images_year = np.uint16(images_year).T
 
@@ -37,8 +37,8 @@ for y in range(2019, 2024):
     albedo_std  = datacube.std().values
     df = pd.DataFrame({"albedo_mean": albedo_mean, "albedo_std": albedo_std, "year": y}, index=[0])  # Add index=[0]
     if y == 2019:
-        df.to_csv(r"O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo.csv", 
+        df.to_csv("/data/shunan/data/SICEdata/SICEalbedo.csv", 
                   index=False, header=True, mode="w")
     else:
-        df.to_csv(r"O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo.csv", 
+        df.to_csv("/data/shunan/data/SICEdata/SICEalbedo.csv", 
                   index=False, header=False, mode="a")

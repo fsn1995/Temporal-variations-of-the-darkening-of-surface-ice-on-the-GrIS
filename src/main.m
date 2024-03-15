@@ -54,5 +54,9 @@
 
 
 %% albedo maps
-[imcount] = func_buildmosaic("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\GrISdailyAlbedoChip", ...
-    "O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\GrISdailyAlbedoMosaic");
+[imcount] = func_iminterp("/data/shunan/data/GrISdailyAlbedoChip", ...
+    "/data/shunan/data/GrISdailyAlbedoChipInterp");
+close all
+clearvars
+% [imcount] = func_buildmosaic("/data/shunan/data/GrISdailyAlbedoChip", ...
+%     "/data/shunan/data/GrISdailyAlbedoMosaic");
