@@ -1,8 +1,16 @@
 function averageAlbedo = func_albedomap(imfolder)
-    % Get a list of all mat files matching the file pattern
-    matFiles = dir(imfolder + "/*.mat");
-    
-    % correlate the average albedo and bare ice duration over different years
 
+% s3 data
+immatfolder = fullfile(imfolder, 's3');
+immatfiles = dir(fullfile(immatfolder, '*.mat'));
+imdate = string({immatfiles.name}.');
+imdate = double(extractBetween(imdate, "albedo_spatial_", ".mat"));
+
+for i = imdate
+    
+    fprintf("ploting albedo map for %d\n", i);
+    load(fullfile(immatfolder, sprintf('albedo_spatial_%d.mat', i)));
+    
+    
 
 end
