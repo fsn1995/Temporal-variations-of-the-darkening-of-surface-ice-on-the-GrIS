@@ -50,10 +50,10 @@ correlationP = reshape(correlationP, size(albedo_avg, 1), size(albedo_avg, 2));
 % delete unncessary variables to save memory
 clearvars albedo numDuration
 % plot the correlation
-figure;
-imagesc(correlationR, [-1, 1]);
-
-% plot the p-value
-figure;
-imagesc(correlationP, [0, 0.05]);
+% figure;
+% imagesc(correlationR, [-1, 1]);
+% 
+% % plot the p-value
+% figure;
+% imagesc(correlationP, [0, 0.05]);
 

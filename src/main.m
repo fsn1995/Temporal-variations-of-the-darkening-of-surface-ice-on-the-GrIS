@@ -60,6 +60,9 @@
 
 % [filelist] = func_albedospatial("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
 % [filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
-tic
-[correlationR, correlationP] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
-toc
+
+% [correlationR, correlationP] = func_spatialcorr("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
+% save("/data/shunan/data/albedospatial/hsacorr.mat", "correlationP", "correlationR",...
+%     "-mat", "-v7.3");
+
+% [correlationR, correlationP] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
