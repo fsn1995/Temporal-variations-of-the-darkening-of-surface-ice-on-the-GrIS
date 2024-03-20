@@ -27,7 +27,7 @@ switch imsource
             for j = 1:height(imfiles_filtered)
                 imfile = fullfile(imfiles_filtered(j).folder, imfiles_filtered(j).name);
                 fprintf("processing %s\n", string(imfiles_filtered(j).name));
-                A = readgeoraster(imfile) ./ 10000;
+                A = readgeoraster(imfile, "OutputType", "single") ./ 10000;
                 gapA = gapA + uint16(A>0);
                 sumA = A + sumA;
                 A = (A > 0) & (A < 0.565);
@@ -39,7 +39,7 @@ switch imsource
 
             end
 
-            albedo_avg = uint16((sumA ./ gapA) .* 10000);
+            albedo_avg = uint16((sumA ./ single(gapA)) .* 10000);
             bare_duration = bare_count_aft - bare_count_pre;
             bare_duration(bare_count_pre > 0) = bare_duration(bare_count_pre > 0) +1;
             % bare_duration = max(bare_count(bare_count>0), [], 3,"omitmissing") - ...
@@ -83,7 +83,7 @@ switch imsource
                 bare_duration = bare_duration + uint16(A > 0 & A < 0.565);
             end
 
-            albedo_avg = uint16((sumA ./ gapA) .* 10000);
+            albedo_avg = uint16((sumA ./ single(gapA)) .* 10000);
             
             % save the albedo_avg, gapA, bare_count, coordinates to a .mat file for each year
             save(fullfile(imfolder, sprintf("albedo_spatial_%d.mat", i)), ...
