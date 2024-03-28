@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import vaex as vx
 import seaborn as sns
 from scipy import stats
-sns.set_theme(style="darkgrid", font="Arial", font_scale=2)
+sns.set_theme(style="whitegrid", font="Arial", font_scale=2)
 # %%
 # Load data
 df1 = vx.from_csv("/data/shunan/data/albedospatial/HSA_data.csv")
