@@ -34,6 +34,7 @@ dfstat = df(df.awsgroup == "M", :);
 
 % find abrupt change in mean
 [TF,S1,S2] = ischange(dfstat.mean_albedo, "mean", "MaxNumChanges", 3);
+% [TF,S1,S2] = ischange(dfstat.mean_albedo, "linear", "MaxNumChanges", 3);
 time_change = dfstat.time(TF);
 albedo_change = dfstat.mean_albedo(TF);
 albedo_threshold = mean(albedo_change(2:3));

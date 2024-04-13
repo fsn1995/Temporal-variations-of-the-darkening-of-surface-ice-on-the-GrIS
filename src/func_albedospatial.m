@@ -57,8 +57,8 @@ switch imsource
         imdate = datetime(extractBetween(imdate, "sice_500_", ".nc"), "Format", "uuuu_MM_dd");
         [y, ~, ~] = ymd(imdate);
 
-        % iterate over years from 2019 to 2023
-        for i = 2019:1:2023
+        % iterate over years from 2020 to 2023
+        for i = 2020:1:2023
             index = y == i;
             fprintf("Year: %d\n", i);
             imfiles_filtered = imfiles(index, :);
@@ -78,6 +78,7 @@ switch imsource
                 fprintf("processing %s\n", string(imfiles_filtered(j).name));
                 A = ncread(imfile, "albedo_bb_planar_sw");
                 A(A<=0 | A>=1) = nan;
+                A(isnan(A)) = 0;
                 gapA = gapA + uint16(A>0);
                 sumA = A + sumA;
                 bare_duration = bare_duration + uint16(A > 0 & A < 0.565);
@@ -88,6 +89,30 @@ switch imsource
             % save the albedo_avg, gapA, bare_count, coordinates to a .mat file for each year
             save(fullfile(imfolder, sprintf("albedo_spatial_%d.mat", i)), ...
                 "albedo_avg", "gapA", "bare_duration", "mapx", "mapy", "maplat", "maplon","-mat");
+        end
+        
+    case "mod10"
+        imfiles = dir(fullfile(imfolder,'meanAlbedo*.tif'));
+        durationfiles = dir(fullfile(imfolder,'bareIceDuration*.tif'));
+        countfiles = dir(fullfile(imfolder,'countAlbedo*.tif'));
+        imdate = string({imfiles.name}.');
+        imdate = double(extractBetween(imdate, "meanAlbedo", "GrIS.tif"));
+
+        % iterate over years from 2002 to 2019
+        for i = 2002:1:2019
+            index = imdate == i;
+            fprintf("Year: %d\n", i);
+            [albedo_avg, R] = readgeoraster(fullfile(imfiles(index).folder, imfiles(index).name));
+            [gapA, ~] = readgeoraster(fullfile(countfiles(index).folder, countfiles(index).name));
+            [bare_duration, ~] = readgeoraster(fullfile(durationfiles(index).folder, durationfiles(index).name));
+            % convert data type
+            albedo_avg = single(albedo_avg);
+            gapA = uint16(gapA);
+            bare_duration = uint16(bare_duration);
+            % save the albedo_avg, gapA, bare_duration to a .mat file for each year
+            save(fullfile(imfolder, sprintf("albedo_spatial_%d.mat", i)), ...
+                "albedo_avg", "gapA", "bare_duration", "R", "-mat");
+            
         end
 end
 % return the location of the .mat files

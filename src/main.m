@@ -29,14 +29,15 @@
 
 %% Data analysis
 % % analyze albeod threshold
-[~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv");
+% [~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv");
 
 % % duration analysis
 % [~] = func_duration_calculator("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
 %     "H:\AU\promiceaws\output\HSA_reprocessed.csv", ...
 %     "..\print", "..\stat");
 
-% [~] = func_duration_analysis("..\stat\icestats.xlsx", "..\print");
+[~] = func_duration_analysis("..\stat\icestats.xlsx", "..\print");
+
 
 
 % plot albedo vs HSA, and interpolated HSA
@@ -53,16 +54,18 @@
 %     "..\print", "..\stat");
 
 
-%% albedo maps
+%% albedo spatial correlation
 
 % [imcount] = func_buildmosaic("/data/shunan/data/GrISdailyAlbedoChip", ...
 %     "/data/shunan/data/GrISdailyAlbedoMosaic");
 
-[filelist] = func_albedospatial("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
+% [filelist] = func_albedospatial("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
 % [filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
+% [filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\MOD10", "mod10");
 
-[correlationR, correlationP] = func_spatialcorr("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
-save("/data/shunan/data/albedospatial/hsacorr.mat", "correlationP", "correlationR",...
-    "-mat", "-v7.3");
-
+% [correlationR, correlationP, R] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", "mods3");
+% save("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mod10s3corr.mat", ...
+%     "correlationP", "correlationR", "R", "-mat");
 % [correlationR, correlationP] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
+
+f1 = func_corrmap("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial");

@@ -1,6 +1,19 @@
 function [f1] = func_duration_analysis(dfduration, outputfolder)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%
+% This function performs duration analysis on the temporal variations of the darkening of surface ice on the Greenland Ice Sheet (GrIS).
+% It takes in the necessary input data and calculates various statistics related to the duration of darkening events.
+% The function returns the figure as output.
+%
+% Inputs:
+%   - dfduration: A table containing the duration of darkening events for each AWS and HSA site.
+%   - outputfolder: A string containing the path to the output folder where the figure will be saved.
+%
+% Outputs:
+%   - f1: A figure containing the results of the duration analysis.
+%
+% Author: Shunan Feng (shunan.feng@envs.au.dk)
+% 
+
 % check input variable
 if isstring(dfduration)
     dfawsduration = readtable(dfduration, "Sheet", "AWS");
@@ -13,14 +26,14 @@ dfawsduration.duration_darkice(dfawsduration.duration_darkice < 1) = nan;
 
 %% plotting
 f1 = figure;
-f1.Position = [200 222 1520 378];
-t = tiledlayout(f1, 1, 4, "TileSpacing","tight", "Padding", "tight");
+f1.Position = [313.8000   77.0000  727.2000  649.6000];
+t = tiledlayout(f1, 2, 2, "TileSpacing","tight", "Padding", "tight");
 % awsgroupColor = ["#186294", "#bd3162", "#cdb47b", "#41b4ee"]; % gyarados "U", "M", "L", "G"
 ax1 = nexttile;
 mdl = fitlm(dfawsduration.albedo, dfawsduration.ablation, "linear");
 h5 = plot(ax1, mdl);
 hold on
-text(ax1, 0.25, -5.5, ...
+text(ax1, 0.20, -5.5, ...
     sprintf("a) r^2:%.2f, p-value<%.2f, n:%.0f", ...
     mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
 s3 = gscatter(ax1, dfawsduration.albedo, dfawsduration.ablation, ...
@@ -31,13 +44,14 @@ s3(3).Color = "#41b4ee";
 s3(4).Color = "#186294";
 set(h5(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
 set(h5(3), "Color", "k");
-set(h5(4), "Color", "k");
+% set(h5(4), "Color", "k");
 delete(h5(1)); %[h1(1), h1(3), h1(4)]
 title(ax1, "");
 xlabel(ax1, "albedo (JJA average)");
 ylabel(ax1, "ablation (m)");
-legend(ax1,[s3(3) s3(1) s3(2) s3(4)], ...
-    'Location','NorthOutside','Orientation','Horizontal');
+% legend(ax1,[s3(3) s3(1) s3(2) s3(4)], ...
+%     'Location','NorthOutside','Orientation','Horizontal');
+legend(ax1, 'hide')
 ylim(ax1, [-6.1 0]);
 grid on
 pbaspect(ax1, [1 1 1]);
@@ -57,7 +71,7 @@ s1(3).Color = "#41b4ee";
 s1(4).Color = "#186294";
 set(h1(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
 set(h1(3), "Color", "k");
-set(h1(4), "Color", "k");
+% set(h1(4), "Color", "k");
 delete(h1(1)); %[h1(1), h1(3), h1(4)]
 xlim(ax2, [1 92]);
 ylim(ax2, [0.1 0.8]);
@@ -67,10 +81,9 @@ ylabel(ax2, "albedo (JJA average)");
 title(ax2, "");
 grid on
 hold off
-legend(ax2,[s1(3) s1(1) s1(2) s1(4)], ...
-    'Location','NorthOutside','Orientation','Horizontal');
+leg = legend(ax2,[s1(3) s1(1) s1(2) s1(4)],'Orientation','Horizontal');
 % leg.Position = [ 0.1595    0.9528    0.1658    0.0655];
-% leg.Layout.Tile = 'North';
+leg.Layout.Tile = 'North';
 
 % ax3 = nexttile;
 % mdl_dark = fitlm(dfawsduration.duration_darkice, dfawsduration.albedo, "linear");
@@ -111,34 +124,39 @@ text(ax4, 0.3, 5, "c)");
 pbaspect(ax4, [1 1 1]);
 
 %% AWS vs HSA
-dfawsduration = dfawsduration(dfawsduration.year>2018,:);
+% dfawsduration = dfawsduration(dfawsduration.year>2018,:);
 
 ax5 = nexttile;
-scatter(ax5, dfhsaduration.duration_bareice, dfawsduration.duration_bareice, [], ...
-    dfhsaduration.num, "filled");
-hold on
-% refline(ax5, 1, 0);
-mdl_hsa = fitlm(dfhsaduration.duration_bareice, dfawsduration.duration_bareice, "linear");
-h3 = plot(mdl_hsa);
-set(h3(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
-set(h3(3), "Color", "k");
-set(h3(4), "Color", "k");
-delete(h3(1));
-legend off
-c = colorbar(ax5, 'eastoutside');
-c.Label.String = 'number of clear observations';
-cmocean('algae');
-clim(ax5, [min(dfhsaduration.num) max(dfhsaduration.num)]);
-title(ax5, "");
-xlabel(ax5, "HSA estimated bare ice duration (days)");
-ylabel(ax5, "AWS estimated bare ice duration (days)");
-pbaspect(ax5, [1 1 1]);
-xlim(ax5, [0 100]);
-ylim(ax5, [0,100]);
-text(ax5, 15, 10, ...
-    sprintf("d) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-    mdl_hsa.Rsquared.Ordinary, mdl_hsa.ModelFitVsNullModel.Pvalue, mdl_hsa.NumObservations));
-grid on
+A = imread("..\print\HSA_linear.png");
+% A = imresize(A, 0.8);
+imshow(A);
+text(ax5, -0.05, -0.05, 'd) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
+% text(ax3,5, 120, 'c)', 'FontSize',20);
+% scatter(ax5, dfhsaduration.duration_bareice, dfawsduration.duration_bareice, [], ...
+%     dfhsaduration.num, "filled");
+% hold on
+% % refline(ax5, 1, 0);
+% mdl_hsa = fitlm(dfhsaduration.duration_bareice, dfawsduration.duration_bareice, "linear");
+% h3 = plot(mdl_hsa);
+% set(h3(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
+% set(h3(3), "Color", "k");
+% set(h3(4), "Color", "k");
+% delete(h3(1));
+% legend off
+% c = colorbar(ax5, 'eastoutside');
+% c.Label.String = 'number of clear observations';
+% cmocean('algae');
+% clim(ax5, [min(dfhsaduration.num) max(dfhsaduration.num)]);
+% title(ax5, "");
+% xlabel(ax5, "HSA estimated bare ice duration (days)");
+% ylabel(ax5, "AWS estimated bare ice duration (days)");
+% pbaspect(ax5, [1 1 1]);
+% xlim(ax5, [0 100]);
+% ylim(ax5, [0,100]);
+% text(ax5, 15, 10, ...
+%     sprintf("d) r^2:%.2f, p-value<%.2f, n:%.0f", ...
+%     mdl_hsa.Rsquared.Ordinary, mdl_hsa.ModelFitVsNullModel.Pvalue, mdl_hsa.NumObservations));
+% grid on
 
 % ax6 = nexttile;
 % scatter(ax6, dfhsaduration.duration_darkice, dfawsduration.duration_darkice, [], ...
