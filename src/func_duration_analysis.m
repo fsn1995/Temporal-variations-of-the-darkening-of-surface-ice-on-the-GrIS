@@ -29,41 +29,15 @@ f1 = figure;
 f1.Position = [313.8000   77.0000  727.2000  649.6000];
 t = tiledlayout(f1, 2, 2, "TileSpacing","tight", "Padding", "tight");
 % awsgroupColor = ["#186294", "#bd3162", "#cdb47b", "#41b4ee"]; % gyarados "U", "M", "L", "G"
-ax1 = nexttile;
-mdl = fitlm(dfawsduration.albedo, dfawsduration.ablation, "linear");
-h5 = plot(ax1, mdl);
-hold on
-text(ax1, 0.20, -5.5, ...
-    sprintf("a) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-    mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
-s3 = gscatter(ax1, dfawsduration.albedo, dfawsduration.ablation, ...
-    dfawsduration.awsgroup);
-s3(1).Color = "#cdb47b";
-s3(2).Color = "#bd3162";
-s3(3).Color = "#41b4ee";
-s3(4).Color = "#186294";
-set(h5(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
-set(h5(3), "Color", "k");
-% set(h5(4), "Color", "k");
-delete(h5(1)); %[h1(1), h1(3), h1(4)]
-title(ax1, "");
-xlabel(ax1, "albedo (JJA average)");
-ylabel(ax1, "ablation (m)");
-% legend(ax1,[s3(3) s3(1) s3(2) s3(4)], ...
-%     'Location','NorthOutside','Orientation','Horizontal');
-legend(ax1, 'hide')
-ylim(ax1, [-6.1 0]);
-grid on
-pbaspect(ax1, [1 1 1]);
 
-ax2 = nexttile;
+ax1 = nexttile;
 mdl_bare = fitlm(dfawsduration.duration_bareice, dfawsduration.albedo, "linear");
-h1 = plot(ax2, mdl_bare);
+h1 = plot(ax1, mdl_bare);
 hold on
-text(ax2, 2, 0.17, ...
-    sprintf("b) r^2:%.2f, p-value<%.2f, n:%.0f", ...
+text(ax1, 2, 0.17, ...
+    sprintf("a) r^2:%.2f, p-value<%.2f, n:%.0f", ...
     mdl_bare.Rsquared.Ordinary, mdl_bare.ModelFitVsNullModel.Pvalue, mdl_bare.NumObservations));
-s1 = gscatter(ax2, dfawsduration.duration_bareice, dfawsduration.albedo, ...
+s1 = gscatter(ax1, dfawsduration.duration_bareice, dfawsduration.albedo, ...
     dfawsduration.awsgroup);
 s1(1).Color = "#cdb47b";
 s1(2).Color = "#bd3162";
@@ -73,18 +47,44 @@ set(h1(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
 set(h1(3), "Color", "k");
 % set(h1(4), "Color", "k");
 delete(h1(1)); %[h1(1), h1(3), h1(4)]
-xlim(ax2, [1 92]);
-ylim(ax2, [0.1 0.8]);
-pbaspect(ax2, [1 1 1]);
-xlabel(ax2, "bare ice duration (days)");
-ylabel(ax2, "albedo (JJA average)");
-title(ax2, "");
+xlim(ax1, [1 92]);
+ylim(ax1, [0.1 0.8]);
+pbaspect(ax1, [1 1 1]);
+xlabel(ax1, "bare ice duration (days)");
+ylabel(ax1, "albedo (JJA average)");
+title(ax1, "");
 grid on
 hold off
-leg = legend(ax2,[s1(3) s1(1) s1(2) s1(4)],'Orientation','Horizontal');
+leg = legend(ax1,[s1(3) s1(1) s1(2) s1(4)],'Orientation','Horizontal');
 % leg.Position = [ 0.1595    0.9528    0.1658    0.0655];
 leg.Layout.Tile = 'North';
 
+ax2 = nexttile;
+mdl = fitlm(dfawsduration.albedo, dfawsduration.ablation, "linear");
+h5 = plot(ax2, mdl);
+hold on
+text(ax2, 0.20, -5.5, ...
+    sprintf("b) r^2:%.2f, p-value<%.2f, n:%.0f", ...
+    mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
+s3 = gscatter(ax2, dfawsduration.albedo, dfawsduration.ablation, ...
+    dfawsduration.awsgroup);
+s3(1).Color = "#cdb47b";
+s3(2).Color = "#bd3162";
+s3(3).Color = "#41b4ee";
+s3(4).Color = "#186294";
+set(h5(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
+set(h5(3), "Color", "k");
+% set(h5(4), "Color", "k");
+delete(h5(1)); %[h1(1), h1(3), h1(4)]
+title(ax2, "");
+xlabel(ax2, "albedo (JJA average)");
+ylabel(ax2, "ablation (m)");
+% legend(ax2,[s3(3) s3(1) s3(2) s3(4)], ...
+%     'Location','NorthOutside','Orientation','Horizontal');
+legend(ax2, 'hide')
+ylim(ax2, [-6.1 0]);
+grid on
+pbaspect(ax2, [1 1 1]);
 % ax3 = nexttile;
 % mdl_dark = fitlm(dfawsduration.duration_darkice, dfawsduration.albedo, "linear");
 % h2 = plot(ax3, mdl_dark);
@@ -112,16 +112,16 @@ leg.Layout.Tile = 'North';
 % leg = legend(ax3, 'Location','NorthOutside','Orientation','Horizontal');
 % leg.Layout.Tile = 'North';
 % % leg.Position = [0.2239    0.9528   0.2384    0.0521];
-% linkaxes([ax2 ax3], 'xy');
+% linkaxes([ax1 ax3], 'xy');
 
-ax4 = nexttile;
-dfawsduration.darkspeed = daysact(dfawsduration.bare_1stday, dfawsduration.dark_1stday);
-boxchart(ax4, categorical(dfawsduration.awsgroup), dfawsduration.darkspeed, "Notch", "on");
-grid on
-ylabel(ax4, "bare-dark transition (days)");
-xlabel(ax4, "AWS group");
-text(ax4, 0.3, 5, "c)");
-pbaspect(ax4, [1 1 1]);
+% ax4 = nexttile;
+% dfawsduration.darkspeed = daysact(dfawsduration.bare_1stday, dfawsduration.dark_1stday);
+% boxchart(ax4, categorical(dfawsduration.awsgroup), dfawsduration.darkspeed, "Notch", "on");
+% grid on
+% ylabel(ax4, "bare-dark transition (days)");
+% xlabel(ax4, "AWS group");
+% text(ax4, 0.3, 5, "c)");
+% pbaspect(ax4, [1 1 1]);
 
 %% AWS vs HSA
 % dfawsduration = dfawsduration(dfawsduration.year>2018,:);
@@ -130,7 +130,7 @@ ax5 = nexttile;
 A = imread("..\print\HSA_linear.png");
 % A = imresize(A, 0.8);
 imshow(A);
-text(ax5, -0.05, -0.05, 'd) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
+text(ax5, -0.02, -0.05, 'c) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
 % text(ax3,5, 120, 'c)', 'FontSize',20);
 % scatter(ax5, dfhsaduration.duration_bareice, dfawsduration.duration_bareice, [], ...
 %     dfhsaduration.num, "filled");
