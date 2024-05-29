@@ -6,7 +6,7 @@
 % 3. Albedo spatial correlation
 
 
-%% Preprocessing
+%% AWS Preprocessing
 % extract and plot daily AWS data with ice surface height data
 [~, ~] = func_preprocessAWS("H:\AU\promiceaws\day", "H:\AU\promiceaws\output");
 
@@ -30,7 +30,7 @@
 %     "H:\AU\promiceaws\output\AWS_height_station_HSA.csv", ...
 %     "H:\AU\promiceaws\output");
 
-%% Data analysis
+%% AWS Data analysis
 % analyze albeod threshold
 [~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv");
 
@@ -59,24 +59,28 @@
 
 %% albedo spatial correlation
 
-% build mosaic of daily HSA albedo
-[imcount] = func_buildmosaic("/data/shunan/data/GrISdailyAlbedoChip", ...
-    "/data/shunan/data/GrISdailyAlbedoMosaic");
+% % build mosaic of daily HSA albedo
+% [imcount] = func_buildmosaic("/data/shunan/data/GrISdailyAlbedoChip", ...
+%     "/data/shunan/data/GrISdailyAlbedoMosaic");
+% 
+% % extract pixel values from the mosaic
+% % [filelist] = func_albedospatial("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
+% [filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
+% [filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\MOD10", "mod10");
+% 
+% % calculate spatial correlation
+% [correlationR, correlationP, R] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", "mods3");
+% save("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mod10s3corr.mat", ...
+%     "correlationP", "correlationR", "R", "-mat");
+% [correlationR, correlationP, R] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", "smb");
+% save("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3smbcorr.mat", ...
+%     "correlationP", "correlationR", "R", "-mat");
+% [correlationR, correlationP] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
+% 
+% % plotting
+% % f1 = func_supplement("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", ...
+% %     "..\print\timeseriesmap");
 
-% extract pixel values from the mosaic
-% [filelist] = func_albedospatial("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
-[filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
-[filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\MOD10", "mod10");
-
-% calculate spatial correlation
-[correlationR, correlationP, R] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", "mods3");
-save("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mod10s3corr.mat", ...
-    "correlationP", "correlationR", "R", "-mat");
-[correlationR, correlationP] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
-
-% plotting
-% f1 = func_supplement("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", ...
-%     "..\print\timeseriesmap");
-
+% filelist = func_preprocessSMB("H:\AU\ENVS_SMB_ALBEDO");
 f1 = func_corrmap("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial");
 

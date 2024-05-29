@@ -131,6 +131,13 @@ A = imread("..\print\HSA_linear.png");
 % A = imresize(A, 0.8);
 imshow(A);
 text(ax5, -0.02, -0.05, 'c) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
+
+ax6 = nexttile;
+A = imread("..\print\smb_linear.png");
+% A = imresize(A, 0.8);
+imshow(A);
+text(ax6, 0, -0.05, 'd) r^2:0.46, p-value<0.00, n:31,283,401', 'Units', 'normalized');
+
 % text(ax3,5, 120, 'c)', 'FontSize',20);
 % scatter(ax5, dfhsaduration.duration_bareice, dfawsduration.duration_bareice, [], ...
 %     dfhsaduration.num, "filled");
