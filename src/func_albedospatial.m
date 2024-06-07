@@ -1,6 +1,18 @@
 function [exporteddata] = func_albedospatial(imfolder, imsource)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+% func_albedospatial Extract pixel values from the mosaic
+%   func_albedospatial(imfolder, imsource) extracts pixel values from the
+%   mosaic of daily albedo images. The function reads the daily albedo images
+%   from the input folder (imfolder) and extracts pixel values. The function
+%   saves the extracted pixel values in .mat files for each year. The function
+%   returns the location of the .mat files.
+%   
+%   imfolder: the folder containing the daily albedo images
+%   imsource: the source of the albedo images (e.g., "hsa", "s3", "mod10")
+%
+%   Note: The function is designed to handle different sources of albedo
+%   images, such as HSA, S3, and MOD10. The processing steps may vary
+%   depending on the source of the images.
+%   Shunan Feng (shunan.feng@envs.au.dk)
 
 switch imsource
     case "hsa"

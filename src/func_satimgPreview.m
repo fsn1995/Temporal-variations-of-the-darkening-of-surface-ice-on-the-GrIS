@@ -1,6 +1,14 @@
 function [imgoutput] = func_satimgPreview(dfaws,imgfolder)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+% func_satimgPreview: Preview satellite images and time series data
+%   func_satimgPreview(dfaws, imgfolder) generates a preview of satellite
+%   images and time series data. The function reads the daily AWS data
+%   (dfaws) and the folder containing the satellite images (imgfolder) to
+%   generate a preview of the satellite images and the AWS data. The
+%   function returns the path of the generated image output.
+%
+%   Shunan Feng (shunan.feng@envs.au.dk)
+
+
 if isstring(dfaws)
     dfaws = readtable(dfaws);
 end

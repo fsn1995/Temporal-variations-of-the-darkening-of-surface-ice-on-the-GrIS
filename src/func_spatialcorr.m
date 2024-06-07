@@ -1,4 +1,16 @@
 function [correlationR, correlationP, R] = func_spatialcorr(imfolder, imsource)
+%  func_spatialcorr Calculate spatial correlation between albedo and bare ice duration
+%   func_spatialcorr(imfolder, imsource) calculates the spatial correlation
+%   between bare ice duration and albedo, as well as albedo and melt. 
+%   The function reads the bare ice duration, albedo and melt data from the input
+%   folder (imfolder) and calculates the correlation. The function returns the
+%   correlation matrix (correlationR), p-value matrix (correlationP), and the
+%   spatial reference (R).
+%
+%   imfolder: the folder containing the annual albedo and bare ice duration data in .mat files
+%   imsource: the source of the albedo images (e.g., "hsa", "s3", "mod10"), which determines the processing steps
+%
+%   Shunan Feng (shunan.feng@envs.au.dk)
     
 switch imsource
     case "hsa"  

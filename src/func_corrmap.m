@@ -1,6 +1,6 @@
 function f1 = func_corrmap(imfolder)
-
-% imfolder = "O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial";
+% func_corrmap Plot the correlation map of bare ice duration, albedo, and melt
+% Shunan Feng (shunan.feng@envs.au.dk)
 
 f1 = figure;
 f1.Position = [2170 -227 1054 1008];

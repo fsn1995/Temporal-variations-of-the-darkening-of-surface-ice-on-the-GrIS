@@ -1,6 +1,17 @@
 function [imcount] = func_buildmosaic(inputfolder,outputfolder)
-%FUNC_BUILDMOSAIC Summary of this function goes here
-%   Detailed explanation goes here
+%  func_buildmosaic Build mosaic of daily HSA albedo
+%   func_buildmosaic(inputfolder,outputfolder) generates a mosaic of daily
+%   HSA albedo. The function reads the daily HSA albedo images from the
+%   input folder (inputfolder) and generates a mosaic of the images. The
+%   mosaic is saved in the output folder (outputfolder). The function
+%   returns the number of images in the mosaic.
+%
+%   Note to myself: this function was made due to the large size of the
+%   daily HSA albedo images. Hence, we have to export those images from GEE
+%   in chips and then build the mosaic locally.
+%   Shunan Feng (shunan.feng@envs.au.dk)
+
+
 imfiles = dir(inputfolder + "/*.tif");
 imnames = string(extractfield(imfiles, "name")');
 imnames = extractBefore(imnames, "-0000");

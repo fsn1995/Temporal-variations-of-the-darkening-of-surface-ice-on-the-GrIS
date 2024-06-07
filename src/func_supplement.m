@@ -8,13 +8,15 @@ function figfile = func_supplement(imfolder, outputfolder)
 %   - outputfolder: A string containing the path to the output folder where the figures will be saved.
 %
 % Outputs:
-%   - figfile: A matlab figure object containing the generated figure for the bare ice frequency.
+%   - figfile: A matlab figure object containing the generated figures.
 %
 % Author: Shunan Feng (shunan.feng@envs.au.dk)
 
-imfiles = dir(fullfile(imfolder, "*.mat"));
+imfiles = dir(fullfile(imfolder, "albedo_spatial_*.mat"));
 imdate = string({imfiles.name}.');
 imdate =extractBetween(imdate, "albedo_spatial_", ".mat");
+smbfiles = dir(fullfile(imfolder, "snmelt_*.mat"));
+
 % if figfile exist, delete it
 if isfile(fullfile(outputfolder, "supplement_duration_albedo.pdf"))
     delete(fullfile(outputfolder, "supplement_duration_albedo.pdf"));
@@ -34,10 +36,13 @@ for i = 1:length(imfiles)-4
 
     bare_frequency = bare_frequency + ~isnan(bare_duration);
 
-    figfile = figure;
-    figfile.Position = [876 673 1066 565];
+    load(fullfile(imfolder, smbfiles(i).name));
+    immelt(isnan(bare_duration)) = nan;
 
-    t = tiledlayout(1, 2, 'TileSpacing','compact','Padding','compact');
+    figfile = figure;
+    figfile.Position = [2923 391 1381 587];
+
+    t = tiledlayout(1, 3, 'TileSpacing','compact','Padding','compact');
 
     ax1 = nexttile;
     greenland('k');
@@ -55,10 +60,20 @@ for i = 1:length(imfiles)-4
     axis off;
     scalebarpsn('location','se');
 
+    ax3 = nexttile;
+    greenland('k');
+    mapshow(ax3, immelt, R, 'DisplayType', 'surface');
+    colormap(ax3, cmocean('-amp'));
+    clim(ax3, [-5.5, 0]);
+    axis off;
+    scalebarpsn('location','se');
+
     c1 = colorbar(ax1, "westoutside");
     c1.Label.String = "bare ice duration (days)";
     c2 = colorbar(ax2, "westoutside");
     c2.Label.String = "albedo (JJA)";
+    c3 = colorbar(ax3, "westoutside");
+    c3.Label.String = "melt (m w.e.)";
 
     title(t, imdate(i));
     fontsize(t, 16, "points");
@@ -96,10 +111,14 @@ for i = length(imfiles)-3:length(imfiles)
     albedo_avg(isnan(bare_duration)) = nan;
     bare_frequency = bare_frequency + ~isnan(bare_duration);
 
+    load(fullfile(imfolder, smbfiles(i).name));
+    [immelt, ~] = mapcrop(immelt, Rmelt, xlimit, ylimit);	
+    immelt(isnan(bare_duration)) = nan;
+
     figfile = figure;
-    figfile.Position = [876 673 1066 565];
+    figfile.Position = [2923 391 1381 587];
     
-    t = tiledlayout(1, 2, 'TileSpacing','compact','Padding','compact');
+    t = tiledlayout(1, 3, 'TileSpacing','compact','Padding','compact');
     
     ax1 = nexttile;
     greenland('k');
@@ -116,11 +135,21 @@ for i = length(imfiles)-3:length(imfiles)
     clim(ax2, [0, 1]);
     axis off;
     scalebarpsn('location','se');
+
+    ax3 = nexttile;
+    greenland('k');
+    mapshow(ax3, immelt, Rmask, 'DisplayType', 'surface');
+    colormap(ax3, cmocean('-amp'));
+    clim(ax3, [-5.5, 0]);
+    axis off;
+    scalebarpsn('location','se');
     
     c1 = colorbar(ax1, "westoutside");
     c1.Label.String = "bare ice duration (days)";
     c2 = colorbar(ax2, "westoutside");
     c2.Label.String = "albedo (JJA)";
+    c3 = colorbar(ax3, "westoutside");
+    c3.Label.String = "melt (m w.e.)";
     
     title(t, imdate(i));
     fontsize(t, 16, "points");

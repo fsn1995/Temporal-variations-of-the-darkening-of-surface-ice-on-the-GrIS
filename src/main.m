@@ -1,86 +1,73 @@
 %% Main script for the project
 % This script is the main script for the project. It calls all the other
 % functions in the project. The project is divided into three parts:
-% 1. Preprocessing
-% 2. Data analysis
-% 3. Albedo spatial correlation
+% 1. Data Preprocessing
+% 2. Data Analysis and Visualization
+% 3. Supplementary Data Analysis and Visualization
 
 
-%% AWS Preprocessing
-% extract and plot daily AWS data with ice surface height data
+%% 1. Data Preprocessing 
+% Note: The data preprocessing is done in the following steps. 
+% However the postprocessed data are saved in the data folder.
+% The following steps are for reference only, but can be run if needed.
+
+% 1.1 - point scale AWS and HSA data
+% extract and plot daily AWS data with transducer measurements
 [~, ~] = func_preprocessAWS("H:\AU\promiceaws\day", "H:\AU\promiceaws\output");
 
-% preview AWS vs HSA
+% Preview AWS vs HSA time series data
 [~] = func_plotalbedo("H:\AU\promiceaws\output\AWS_height_daily.csv", ...
     "H:\AU\promiceaws\output\AWS_height_station_HSA.csv", ...
     "H:\AU\promiceaws\output");
+% Preview satellite images and time series data
 [~] = func_satimgPreview("H:\AU\promiceaws\output\AWS_height_daily.csv", ...
     "H:\AU\promiceaws\HSA"); % this step takes quite long
-
-% add albedo_diff, height_diff, and hsa_diff to the datasets 
+% Add albedo_diff, height_diff, and hsa_diff to the datasets 
 [~, ~] = func_reprocess("H:\AU\promiceaws\output\AWS_height_daily.csv", ...
     "H:\AU\promiceaws\output\AWS_height_station_HSA.csv", ...
     "H:\AU\promiceaws\output");
 
-% [~] = func_plotheight("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
-%     "H:\AU\promiceaws\output");
-% % preliminary comparison of in situ albedo vs surface height and filter AWS
-% % data to May-Sep
-% [dfaws, dfhsajoined] = func_albedoVSheight("H:\AU\promiceaws\output\AWS_height_daily.csv", ...
-%     "H:\AU\promiceaws\output\AWS_height_station_HSA.csv", ...
-%     "H:\AU\promiceaws\output");
+% 1.2 - Spatial scale MOD10 and SICE albedo data
+% Build mosaic of daily HSA albedo
+[imcount] = func_buildmosaic("/data/shunan/data/GrISdailyAlbedoChip", ...
+    "/data/shunan/data/GrISdailyAlbedoMosaic");
 
-%% AWS Data analysis
-% analyze albeod threshold
-[~] = func_threshold_analysis("H:\AU\promiceaws\output\AWS_reprocessed.csv");
+% Extract pixel values from the mosaic
+[filelist] = func_albedospatial("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
+[filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
+[filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\MOD10", "mod10");
 
-% duration analysis
-[~] = func_duration_calculator("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
-    "H:\AU\promiceaws\output\HSA_reprocessed.csv", ...
+% 1.3 - Spatial scale SMB data
+filelist = func_preprocessSMB("H:\AU\ENVS_SMB_ALBEDO");
+
+
+%% 2. Data Analysis and Visualization
+% 2.1 Visualize AWS location and time series of albedo (fig. 1)
+[~] = func_threshold_analysis("..\data\AWS_reprocessed.csv");
+
+% 2.2 Point and pixel scale bare ice duration, albedo, and ablation/melt analysis
+% Impact of bare ice duration on albedo, and the influence of albedo on ablation/melt (fig. 2)
+
+% calculate bare ice duration, albedo, and ablation/melt
+[~] = func_duration_calculator("..\data\AWS_reprocessed.csv", ...
+    "..\data\HSA_reprocessed.csv", ...
     "..\print", "..\stat");
-
+% plot bare ice duration, albedo, and ablation/melt
 [~] = func_duration_analysis("..\stat\icestats.xlsx", "..\print");
 
+% 2.3 Spatial scale bare ice duration, albedo, and melt analysis
+% Spatial analysis of the impact of bare ice duration on albedo, and the influence of albedo on melt (fig. 3)
 
+% calculate spatial correlation
+[correlationR, correlationP, R] = func_spatialcorr("..\data\mods3", "mods3");
+save("..\data\mod10s3corr.mat", ...
+    "correlationP", "correlationR", "R", "-mat");
+[correlationR, correlationP, R] = func_spatialcorr("..\data\mods3", "smb");
+save("..\data\mods3smbcorr.mat", ...
+    "correlationP", "correlationR", "R", "-mat");
+f1 = func_corrmap("..\data");
 
-% plot albedo vs HSA, and interpolated HSA
-% [~] = func_plotAWSHSA("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
-%     "H:\AU\promiceaws\output\HSA_reprocessed.csv", ...
-%     "..\print");
-
-% height analysis
-% plot albedo vs height
-% [~] = func_plotheight("H:\AU\promiceaws\output\AWS_reprocessed.csv", "..\print");
-
-% [dfstat] = func_height_calculator("H:\AU\promiceaws\output\AWS_reprocessed.csv", ...
-%     "H:\AU\promiceaws\output\HSA_interp.csv", ...
-%     "..\print", "..\stat");
-
-
-%% albedo spatial correlation
-
-% % build mosaic of daily HSA albedo
-% [imcount] = func_buildmosaic("/data/shunan/data/GrISdailyAlbedoChip", ...
-%     "/data/shunan/data/GrISdailyAlbedoMosaic");
-% 
-% % extract pixel values from the mosaic
-% % [filelist] = func_albedospatial("/data/shunan/data/GrISdailyAlbedoMosaic", "hsa");
-% [filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
-% [filelist] = func_albedospatial("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\MOD10", "mod10");
-% 
-% % calculate spatial correlation
-% [correlationR, correlationP, R] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", "mods3");
-% save("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mod10s3corr.mat", ...
-%     "correlationP", "correlationR", "R", "-mat");
-% [correlationR, correlationP, R] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", "smb");
-% save("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3smbcorr.mat", ...
-%     "correlationP", "correlationR", "R", "-mat");
-% [correlationR, correlationP] = func_spatialcorr("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\SICEalbedo", "s3");
-% 
-% % plotting
-% % f1 = func_supplement("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial\mods3", ...
-% %     "..\print\timeseriesmap");
-
-% filelist = func_preprocessSMB("H:\AU\ENVS_SMB_ALBEDO");
-f1 = func_corrmap("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\albedospatial");
+%% 3. Supplementary Data Analysis and Visualization
+f1 = func_supplement("..\data\mods3", ...
+    "..\print\timeseriesmap");
 
