@@ -23,7 +23,7 @@ if isfile(fullfile(outputfolder, "supplement_duration_albedo.pdf"))
 end
 
 % read the Greenland ice mask
-[mask, R] = readgeoraster("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\greenland_ice_mask.tif");
+[mask, R] = readgeoraster("..\data\greenland_ice_mask.tif");
 % preallocate a matrix for the bare ice frequency
 bare_frequency = zeros(size(mask), 'single');
 

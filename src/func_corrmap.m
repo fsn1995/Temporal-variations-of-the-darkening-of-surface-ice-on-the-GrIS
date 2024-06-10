@@ -66,7 +66,7 @@ axis off;
 
 % 2022
 % read the Greenland ice mask
-[mask, R] = readgeoraster("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\greenland_ice_mask.tif");
+[mask, R] = readgeoraster("..\data\greenland_ice_mask.tif");
 load(fullfile(imfolder, "mods3\albedo_spatial_2022.mat"));
 xlimit = [min(mapx) max(mapx)];
 ylimit = [min(mapy) max(mapy)];
@@ -171,13 +171,13 @@ c1.Label.String = "bare ice duration (days)";
 c5 = colorbar(ax5, "westoutside");
 c5.Label.String = "albedo (JJA)";
 c4 = colorbar(ax4, "eastoutside");
-c4.Label.String = "r^2 (p < 0.05)"; 
+c4.Label.String = "duration vs albedo: r^2 (p < 0.05)"; 
 c8 = colorbar(ax8, "eastoutside");
 c8.Label.String = "bare ice frequency (years)";
 c9 = colorbar(ax9, "westoutside");
 c9.Label.String = "melt (m w.e.)";
 c12 = colorbar(ax12, "eastoutside");
-c12.Label.String = "r^2 (p < 0.05)";
+c12.Label.String = "albedo vs melt: r^2 (p < 0.05)";
 
 fontsize(t, 16, "points");
 

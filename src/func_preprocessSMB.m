@@ -1,4 +1,10 @@
 function [exporteddata] = func_preprocessSMB(imfolder)
+% func_preprocessSMB preprocess the SMB data from the .nc files
+% in the imfolder and save the processed data to .mat files
+% for each year.
+% The SMB data will be interpolated using the 500m grids.
+% 
+% Shunan Feng (shunan.feng@envs.au.dk)
 
 imfiles = dir(fullfile(imfolder,'*.nc'));
 imyrange = string({imfiles.name}.');
@@ -23,7 +29,7 @@ for i = 1:length(imyrange)
     immelt = sum(immelt * -1, 3)/1000;
 
     % read the Greenland ice mask
-    [mask, R] = readgeoraster("O:\Tech_ENVS-EMBI-Afdelingsdrev\Shunan\paper6temporal\greenland_ice_mask.tif", ...
+    [mask, R] = readgeoraster("..\data\greenland_ice_mask.tif", ...
         'OutputType', 'double');
     mask(mask==0) = nan;
     [mapx, mapy] = projfwd(R.ProjectedCRS, imlat, imlon);
