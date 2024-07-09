@@ -26,8 +26,8 @@ if isfile(imgoutput)
     delete(imgoutput);
 end
 
-writetable(cell2table(cell(0,11), 'VariableNames', ...
-    {'aws','awsgroup', 'year', 'albedo', 'duration_bareice', 'duration_darkice', ...
+writetable(cell2table(cell(0,12), 'VariableNames', ...
+    {'aws','awsgroup', 'year', 'albedo', 'albedo_ice', 'duration_bareice', 'duration_darkice', ...
     'bare_1stday', 'bare_lastday', 'dark_1stday', 'dark_lastday', 'ablation'}),...
     statoutput+'/icestats.xlsx', 'sheet', 'AWS',...
     'WriteVariableNames', true, 'WriteMode', 'overwritesheet');
@@ -88,6 +88,7 @@ for i = 1:numel(awslist)
         dfstat.awsgroup = unique(dfawssub.awsgroup(~isnan(dfawssub.albedo)));
         dfstat.y = y;
         dfstat.albedo = mean(dfawsplot.albedo);
+        dfstat.albedo_ice = mean(dfawsplot.albedo(dfawsplot.albedo<0.565));
         dfstat.duration_bareice = numel(find(dfawsplot.albedo<0.565));
         dfstat.duration_darkice = numel(find(dfawsplot.albedo<0.451));
         index = find(dfawsplot.albedo<0.565, 1, "first");
@@ -198,6 +199,7 @@ for i = 1:numel(awslist)
         dfstat.awsgroup = unique(dfawssub.awsgroup(~isnan(dfawssub.albedo)));
         dfstat.y = y;
         dfstat.albedo = mean(dfawsplot.albedo);
+        dfstat.albedo_ice = mean(dfawsplot.albedo(dfawsplot.albedo<0.565));
         dfstat.duration_bareice = numel(find(dfawsplot.albedo<0.565));
         dfstat.duration_darkice = numel(find(dfawsplot.albedo<0.451));
         index = find(dfawsplot.albedo<0.565, 1, "first");

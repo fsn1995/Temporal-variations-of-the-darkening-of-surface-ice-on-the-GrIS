@@ -26,8 +26,8 @@ dfawsduration.duration_darkice(dfawsduration.duration_darkice < 1) = nan;
 
 %% plotting
 f1 = figure;
-f1.Position = [313.8000   77.0000  727.2000  649.6000];
-t = tiledlayout(f1, 2, 2, "TileSpacing","tight", "Padding", "tight");
+f1.Position = [750 379 1152 744];
+t = tiledlayout(f1, 2, 3, "TileSpacing","tight", "Padding", "tight");
 % awsgroupColor = ["#186294", "#bd3162", "#cdb47b", "#41b4ee"]; % gyarados "U", "M", "L", "G"
 
 ax1 = nexttile;
@@ -63,7 +63,7 @@ ax2 = nexttile;
 mdl = fitlm(dfawsduration.albedo, dfawsduration.ablation, "linear");
 h5 = plot(ax2, mdl);
 hold on
-text(ax2, 0.20, -5.5, ...
+text(ax2, 0.23, -5.5, ...
     sprintf("b) r^2:%.2f, p-value<%.2f, n:%.0f", ...
     mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
 s3 = gscatter(ax2, dfawsduration.albedo, dfawsduration.ablation, ...
@@ -85,34 +85,34 @@ legend(ax2, 'hide')
 ylim(ax2, [-6.1 0]);
 grid on
 pbaspect(ax2, [1 1 1]);
-% ax3 = nexttile;
-% mdl_dark = fitlm(dfawsduration.duration_darkice, dfawsduration.albedo, "linear");
-% h2 = plot(ax3, mdl_dark);
-% hold on
-% text(ax3, 2, 0.15, ...
-%     sprintf("c) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-%     mdl_dark.Rsquared.Ordinary, mdl_dark.ModelFitVsNullModel.Pvalue, mdl_dark.NumObservations));
-% s2 = gscatter(ax3, dfawsduration.duration_darkice, dfawsduration.albedo, ...
-%     dfawsduration.awsgroup);
-% s2(1).Color = "#186294";
-% s2(2).Color = "#bd3162";
-% s2(3).Color = "#cdb47b";
-% s2(4).Color = "#41b4ee";
-% set(h2(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
-% set(h2(3), "Color", "k");
-% set(h2(4), "Color", "k");
-% delete(h2(1));
-% xlim(ax3, [1 92]);
-% pbaspect(ax3,[1 1 1]);
-% xlabel(ax3, "dark ice duration (days)");
-% ylabel(ax3, "albedo (JJA average)");
-% title(ax3, "");
-% grid on
-% hold off
-% leg = legend(ax3, 'Location','NorthOutside','Orientation','Horizontal');
-% leg.Layout.Tile = 'North';
-% % leg.Position = [0.2239    0.9528   0.2384    0.0521];
-% linkaxes([ax1 ax3], 'xy');
+
+ax3 = nexttile;
+mdl_snowfree = fitlm(dfawsduration.duration_bareice, dfawsduration.albedo_ice, "linear");
+h3 = plot(ax3, mdl_snowfree);
+hold on
+text(ax3, 2, 0.15, ...
+    sprintf("e) r^2:%.2f, p-value<%.2f, n:%.0f", ...
+    mdl_snowfree.Rsquared.Ordinary, mdl_snowfree.ModelFitVsNullModel.Pvalue, mdl_bare.NumObservations));
+s2 = gscatter(ax3, dfawsduration.duration_bareice, dfawsduration.albedo_ice, ...
+    dfawsduration.awsgroup);
+s2(1).Color = "#cdb47b";
+s2(2).Color = "#bd3162";
+s2(3).Color = "#41b4ee";
+s2(4).Color = "#186294";
+set(h3(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
+set(h3(3), "Color", "k");
+% set(h3(4), "Color", "k");
+delete(h3(1)); %[h1(1), h1(3), h1(4)]
+xlim(ax3, [1 92]);
+pbaspect(ax3,[1 1 1]);
+xlabel(ax3, "bare ice duration (days)");
+ylabel(ax3, "bare ice albedo (JJA average)");
+title(ax3, "");
+grid on
+pbaspect(ax3, [1 1 1]);
+hold off
+linkaxes([ax1 ax3], 'xy');
+legend(ax3, 'hide');
 
 % ax4 = nexttile;
 % dfawsduration.darkspeed = daysact(dfawsduration.bare_1stday, dfawsduration.dark_1stday);
@@ -130,69 +130,16 @@ ax5 = nexttile;
 A = imread("..\print\HSA_linear.png");
 % A = imresize(A, 0.8);
 imshow(A);
-text(ax5, -0.02, -0.05, 'c) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
+text(ax5, -0.05, -0.05, 'c) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
 
 ax6 = nexttile;
 A = imread("..\print\smb_linear.png");
 % A = imresize(A, 0.8);
 imshow(A);
-text(ax6, 0, -0.05, 'd) r^2:0.46, p-value<0.00, n:31,283,401', 'Units', 'normalized');
+text(ax6, 0.0, -0.05, 'd) r^2:0.46, p-value<0.00, n:31,283,401', 'Units', 'normalized');
 
-% text(ax3,5, 120, 'c)', 'FontSize',20);
-% scatter(ax5, dfhsaduration.duration_bareice, dfawsduration.duration_bareice, [], ...
-%     dfhsaduration.num, "filled");
-% hold on
-% % refline(ax5, 1, 0);
-% mdl_hsa = fitlm(dfhsaduration.duration_bareice, dfawsduration.duration_bareice, "linear");
-% h3 = plot(mdl_hsa);
-% set(h3(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
-% set(h3(3), "Color", "k");
-% set(h3(4), "Color", "k");
-% delete(h3(1));
-% legend off
-% c = colorbar(ax5, 'eastoutside');
-% c.Label.String = 'number of clear observations';
-% cmocean('algae');
-% clim(ax5, [min(dfhsaduration.num) max(dfhsaduration.num)]);
-% title(ax5, "");
-% xlabel(ax5, "HSA estimated bare ice duration (days)");
-% ylabel(ax5, "AWS estimated bare ice duration (days)");
-% pbaspect(ax5, [1 1 1]);
-% xlim(ax5, [0 100]);
-% ylim(ax5, [0,100]);
-% text(ax5, 15, 10, ...
-%     sprintf("d) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-%     mdl_hsa.Rsquared.Ordinary, mdl_hsa.ModelFitVsNullModel.Pvalue, mdl_hsa.NumObservations));
-% grid on
 
-% ax6 = nexttile;
-% scatter(ax6, dfhsaduration.duration_darkice, dfawsduration.duration_darkice, [], ...
-%     dfhsaduration.num, "filled");
-% hold on
-% % refline(ax5, 1, 0);
-% mdl_hsa = fitlm(dfhsaduration.duration_darkice, dfawsduration.duration_darkice, "linear");
-% h4 = plot(mdl_hsa);
-% set(h4(2), "Color", "k", "LineStyle","-", "LineWidth",1.5);
-% set(h4(3), "Color", "k");
-% set(h4(4), "Color", "k");
-% delete(h4(1));
-% legend off
-% c = colorbar('eastoutside');
-% c.Label.String = 'number of clear observations';
-% cmocean('algae');
-% clim(ax6, [min(dfhsaduration.num) max(dfhsaduration.num)]);
-% title(ax6, "");
-% xlabel(ax6, "HSA estimated dark ice duration (days)");
-% ylabel(ax6, "AWS estimated dark ice duration (days)");
-% pbaspect(ax6, [1 1 1]);
-% xlim(ax6, [0 100]);
-% ylim(ax6, [0,100]);
-% text(ax6, 15, 5, ...
-%     sprintf("f) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-%     mdl_hsa.Rsquared.Ordinary, mdl_hsa.ModelFitVsNullModel.Pvalue, mdl_hsa.NumObservations));
-% grid on
-% linkaxes([ax5 ax6], 'xy');
-fontsize(t, 12, "points");
+fontsize(t, 14, "points");
 
 exportgraphics(f1, outputfolder+'\duration_analysis.pdf', "Resolution",300);
 % legend(ax3, "off");
