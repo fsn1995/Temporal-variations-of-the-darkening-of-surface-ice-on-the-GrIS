@@ -1,6 +1,6 @@
-# Temporal variations of the darkening of surface ice on the GrIS
+# Bare ice duration darkens the Greenland Ice Sheet
  
-This GitHub repository investigates the impact of bare ice duration on the average summer albedo and the influence of albedo on melt rates on the Greenland Ice Sheet. 
+This GitHub repository investigates the impact of bare ice duration on the average summer albedo and the influence of albedo on melt rates on the bare ice area of the Greenland Ice Sheet. 
 Details of this repository are described in a manuscript that is currently under review.
 
 ## Data preparation
