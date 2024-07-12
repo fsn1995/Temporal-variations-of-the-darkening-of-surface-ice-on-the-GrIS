@@ -1,0 +1,132 @@
+function [exporteddata] = func_albedospatial(imfolder, imsource)
+% func_albedospatial Extract pixel values from the mosaic
+%   func_albedospatial(imfolder, imsource) extracts pixel values from the
+%   mosaic of daily albedo images. The function reads the daily albedo images
+%   from the input folder (imfolder) and extracts pixel values. The function
+%   saves the extracted pixel values in .mat files for each year. The function
+%   returns the location of the .mat files.
+%   
+%   imfolder: the folder containing the daily albedo images
+%   imsource: the source of the albedo images (e.g., "hsa", "s3", "mod10")
+%
+%   Note: The function is designed to handle different sources of albedo
+%   images, such as HSA, S3, and MOD10. The processing steps may vary
+%   depending on the source of the images.
+%   Shunan Feng (shunan.feng@envs.au.dk)
+
+switch imsource
+    case "hsa"
+        imfiles = dir(fullfile(imfolder,'*.tif'));
+        imdate = string({imfiles.name}.');
+        imdate = datetime(extractBetween(imdate, "albedo_", ".tif"), ...
+            "InputFormat", "uuuu-MM-dd");
+        [y, ~, ~] = ymd(imdate);
+
+        % iterate over years from 2019 to 2023
+        for i = 2019:1:2023
+            index = y == i;
+            fprintf("Year: %d\n", i);
+            imfiles_filtered = imfiles(index, :);
+
+            [sumA, R] = readgeoraster("/data/shunan/data/GrISdailyAlbedoMosaic/albedo_2019-06-01.tif");
+            sumA = zeros(size(sumA), "single");
+            gapA = zeros(size(sumA), "uint16"); % to count how many pixels are valid in each year
+            % bare_count = zeros([size(sumA) height(imfiles_filtered)], "uint16"); % to count how many days are bare ice in each year
+            bare_count_pre = gapA;
+            bare_count_aft = gapA;
+
+            % iterate over each day in the year
+            for j = 1:height(imfiles_filtered)
+                imfile = fullfile(imfiles_filtered(j).folder, imfiles_filtered(j).name);
+                fprintf("processing %s\n", string(imfiles_filtered(j).name));
+                A = readgeoraster(imfile, "OutputType", "single") ./ 10000;
+                gapA = gapA + uint16(A>0);
+                sumA = A + sumA;
+                A = (A > 0) & (A < 0.565);
+                A = uint16(A).*j;
+                index = bare_count_pre == 0;
+                bare_count_pre(index) = A(index);
+                index = A > bare_count_pre;
+                bare_count_aft(index) = A(index);
+
+            end
+
+            albedo_avg = uint16((sumA ./ single(gapA)) .* 10000);
+            bare_duration = bare_count_aft - bare_count_pre;
+            bare_duration(bare_count_pre > 0) = bare_duration(bare_count_pre > 0) +1;
+            % bare_duration = max(bare_count(bare_count>0), [], 3,"omitmissing") - ...
+            %     min(bare_count(bare_count>0), [], 3, "omitmissing") + 1;
+            
+            % save the albedo_avg, gapA, bare_duration to a .mat file for each year
+            save(fullfile(imfolder, sprintf("albedo_spatial_%d.mat", i)), ...
+                "albedo_avg", "gapA", "bare_duration", "R", "-mat", "-v7.3");
+
+        end
+
+    case "s3"
+        imfiles = dir(fullfile(imfolder,'*.nc'));
+        imdate = string({imfiles.name}.');
+        imdate = datetime(extractBetween(imdate, "sice_500_", ".nc"), "Format", "uuuu_MM_dd");
+        [y, ~, ~] = ymd(imdate);
+
+        % iterate over years from 2020 to 2023
+        for i = 2020:1:2023
+            index = y == i;
+            fprintf("Year: %d\n", i);
+            imfiles_filtered = imfiles(index, :);
+
+            sumA = ncread(fullfile(imfiles_filtered(1).folder, imfiles_filtered(1).name), "albedo_bb_planar_sw");
+            mapx = ncread(fullfile(imfiles_filtered(1).folder, imfiles_filtered(1).name), "x");
+            mapy = ncread(fullfile(imfiles_filtered(1).folder, imfiles_filtered(1).name), "y");
+            maplat = ncread(fullfile(imfiles_filtered(1).folder, imfiles_filtered(1).name), "lat");
+            maplon = ncread(fullfile(imfiles_filtered(1).folder, imfiles_filtered(1).name), "lon");
+            sumA = zeros(size(sumA), "single");
+            gapA = zeros(size(sumA), "uint16"); % to count how many pixels are valid in each year
+            bare_duration = zeros(size(sumA), "uint16"); % to count how many days are bare ice in each year
+
+            % iterate over each day in the year
+            for j = 1:height(imfiles_filtered)
+                imfile = fullfile(imfiles_filtered(j).folder, imfiles_filtered(j).name);
+                fprintf("processing %s\n", string(imfiles_filtered(j).name));
+                A = ncread(imfile, "albedo_bb_planar_sw");
+                A(A<=0 | A>=1) = nan;
+                A(isnan(A)) = 0;
+                gapA = gapA + uint16(A>0);
+                sumA = A + sumA;
+                bare_duration = bare_duration + uint16(A > 0 & A < 0.565);
+            end
+
+            albedo_avg = uint16((sumA ./ single(gapA)) .* 10000);
+            
+            % save the albedo_avg, gapA, bare_count, coordinates to a .mat file for each year
+            save(fullfile(imfolder, sprintf("albedo_spatial_%d.mat", i)), ...
+                "albedo_avg", "gapA", "bare_duration", "mapx", "mapy", "maplat", "maplon","-mat");
+        end
+        
+    case "mod10"
+        imfiles = dir(fullfile(imfolder,'meanAlbedo*.tif'));
+        durationfiles = dir(fullfile(imfolder,'bareIceDuration*.tif'));
+        countfiles = dir(fullfile(imfolder,'countAlbedo*.tif'));
+        imdate = string({imfiles.name}.');
+        imdate = double(extractBetween(imdate, "meanAlbedo", "GrIS.tif"));
+
+        % iterate over years from 2002 to 2019
+        for i = 2002:1:2019
+            index = imdate == i;
+            fprintf("Year: %d\n", i);
+            [albedo_avg, R] = readgeoraster(fullfile(imfiles(index).folder, imfiles(index).name));
+            [gapA, ~] = readgeoraster(fullfile(countfiles(index).folder, countfiles(index).name));
+            [bare_duration, ~] = readgeoraster(fullfile(durationfiles(index).folder, durationfiles(index).name));
+            % convert data type
+            albedo_avg = single(albedo_avg);
+            gapA = uint16(gapA);
+            bare_duration = uint16(bare_duration);
+            % save the albedo_avg, gapA, bare_duration to a .mat file for each year
+            save(fullfile(imfolder, sprintf("albedo_spatial_%d.mat", i)), ...
+                "albedo_avg", "gapA", "bare_duration", "R", "-mat");
+            
+        end
+end
+% return the location of the .mat files
+exporteddata = dir(fullfile(imfolder, "albedo_spatial_*.mat"));
+end

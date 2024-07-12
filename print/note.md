@@ -1,0 +1,5 @@
+hsalinear.png
+num: 1889267238
+slope -0.0028341446803649673
+rvalue -0.7426942286767999
+pvalue 0.0
