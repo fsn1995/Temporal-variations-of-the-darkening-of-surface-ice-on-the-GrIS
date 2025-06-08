@@ -54,7 +54,7 @@ filelist = func_preprocessSMB("H:\AU\ENVS_SMB_ALBEDO");
     "..\print", "..\stat");
 % plot bare ice duration, albedo, and ablation/melt
 [~] = func_duration_analysis("..\stat\icestats.xlsx", "..\print");
-
+[~] = func_duration_comparison("..\stat\icestats.xlsx", "..\print");
 % 2.3 Spatial scale bare ice duration, albedo, and melt analysis
 % Spatial analysis of the impact of bare ice duration on albedo, and the influence of albedo on melt (fig. 3)
 

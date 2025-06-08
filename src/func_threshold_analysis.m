@@ -43,9 +43,9 @@ f1 = figure;
 f1.Position = [488   245   917   376];
 t = tiledlayout(1, 3, "TileSpacing","compact", "Padding","compact");
 ax1 = nexttile(t);
-A = imread("..\print\aoi.png");
-imshow(A);
-text(ax1, 80, 1600, "a)", "FontSize", 12, "Color", "w");
+% A = imread("..\print\aoi.png");
+% imshow(A);
+% text(ax1, 80, 1600, "a)", "FontSize", 12, "Color", "w");
 ax2 = nexttile([1 2]); %ax2 = nexttile([1 2]);
 % plot(ax2, [time_change(1) time_change(1)], [0 albedo_change(1)], ...
 %     [dfstat.time(1) time_change(1)], [albedo_change(1) albedo_change(1)], ...
@@ -61,7 +61,7 @@ hold on
 %         'Color', 'k', 'LineWidth', 1.5, 'LabelHorizontalAlignment','right');
 plotAWSGroup(ax2, df, awsgroup, awsgroupColor);
 ax2.XTickLabel = ax2.XTickLabel;
-text(ax2, datetime(2023, 6, 3), 0.2, "b)", "FontSize", 12);
+% text(ax2, datetime(2023, 6, 3), 0.2, "b)", "FontSize", 12);
 ylim(ax2, [0.15 0.9]);
 ylabel(ax2, "albedo (\alpha)");
 fontsize(f1, 12, "points");
