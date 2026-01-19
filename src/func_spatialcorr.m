@@ -1,14 +1,16 @@
-function [correlationR, correlationP, R] = func_spatialcorr(imfolder, imsource)
-%  func_spatialcorr Calculate spatial correlation between albedo and bare ice duration
+function [correlationR, correlationP, R, slope, intercept] = func_spatialcorr(imfolder, imsource)
+%  func_spatialcorr Calculate spatial correlation between variables and linear fit
 %   func_spatialcorr(imfolder, imsource) calculates the spatial correlation
 %   between bare ice duration and albedo, as well as albedo and melt. 
 %   The function reads the bare ice duration, albedo and melt data from the input
-%   folder (imfolder) and calculates the correlation. The function returns the
-%   correlation matrix (correlationR), p-value matrix (correlationP), and the
-%   spatial reference (R).
+%   folder (imfolder) and calculates:
+%     - correlation matrix (correlationR)
+%     - p-value matrix (correlationP)
+%     - spatial reference (R) where applicable
+%     - linear regression slope and intercept (pixel-wise)
 %
 %   imfolder: the folder containing the annual albedo and bare ice duration data in .mat files
-%   imsource: the source of the albedo images (e.g., "hsa", "s3", "mod10"), which determines the processing steps
+%   imsource: the source of the albedo images (e.g., "hsa", "s3", "mods3", "smb")
 %
 %   Shunan Feng (shunan.feng@envs.au.dk)
     
@@ -18,7 +20,6 @@ switch imsource
         imfiles = dir(fullfile(imfolder, 'albedo_spatial*.mat'));
         % pre-allocate the array
         load(fullfile(imfolder, imfiles(1).name), 'albedo_avg');
-        % numClear = zeros([size(gapA) height(imfiles)], "uint16");
         albedo = NaN([size(albedo_avg, 1) * size(albedo_avg, 2) height(imfiles)], "single");
         numDuration = albedo;
         imindex = zeros([size(albedo_avg, 1) * size(albedo_avg, 2) height(imfiles)], "uint16");
@@ -46,19 +47,33 @@ switch imsource
         % correlate albedo with bare ice duration pixel by pixel
         correlationR = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
         correlationP = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        slope = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        intercept = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
 
         for i = 1:length(imindex)
 
             fprintf("Correlating pixel %d out of %d \n", i, length(imindex));
+            % Correlation (unchanged behavior)
             [r, p] = corrcoef(numDuration(imindex(i), :)', albedo(imindex(i), :)');
             correlationR(imindex(i)) = r(1, 2);
             correlationP(imindex(i)) = p(1, 2);
 
+            % Linear regression: albedo (y) vs bare ice duration (x)
+            x = numDuration(imindex(i), :)';
+            y = albedo(imindex(i), :)';
+            idx = ~(isnan(x) | isnan(y));
+            if nnz(idx) >= 2
+                pf = polyfit(x(idx), y(idx), 1);
+                slope(imindex(i)) = pf(1);
+                intercept(imindex(i)) = pf(2);
+            end
         end
 
-        % reshape the correlation matrix
+        % reshape the outputs
         correlationR = reshape(correlationR, size(albedo_avg, 1), size(albedo_avg, 2));
         correlationP = reshape(correlationP, size(albedo_avg, 1), size(albedo_avg, 2));
+        slope = reshape(slope, size(albedo_avg, 1), size(albedo_avg, 2));
+        intercept = reshape(intercept, size(albedo_avg, 1), size(albedo_avg, 2));
 
     case "s3"        
 
@@ -92,22 +107,37 @@ switch imsource
         % correlate albedo with bare ice duration pixel by pixel
         correlationR = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
         correlationP = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        slope = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        intercept = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
 
         for i = 1:length(imindex)
 
             fprintf("Correlating pixel %d out of %d \n", i, length(imindex));
+            % Correlation (unchanged behavior)
             [r, p] = corrcoef(numDuration(imindex(i), :)', albedo(imindex(i), :)');
             correlationR(imindex(i)) = r(1, 2);
             correlationP(imindex(i)) = p(1, 2);
+
+            % Linear regression: albedo (y) vs bare ice duration (x)
+            x = numDuration(imindex(i), :)';
+            y = albedo(imindex(i), :)';
+            idx = ~(isnan(x) | isnan(y));
+            if nnz(idx) >= 2
+                pf = polyfit(x(idx), y(idx), 1);
+                slope(imindex(i)) = pf(1);
+                intercept(imindex(i)) = pf(2);
+            end
             % mdl = fitlm(numDuration(imindex(i), :)', albedo(imindex(i), :)', 'linear', 'RobustOpts', 'off');
             % correlationR(imindex(i)) = mdl.Rsquared.Ordinary;
             % correlationP(imindex(i)) = mdl.Coefficients.pValue(2);
 
         end
 
-        % reshape the correlation matrix
+        % reshape the outputs
         correlationR = reshape(correlationR, size(albedo_avg, 1), size(albedo_avg, 2));
         correlationP = reshape(correlationP, size(albedo_avg, 1), size(albedo_avg, 2));
+        slope = reshape(slope, size(albedo_avg, 1), size(albedo_avg, 2));
+        intercept = reshape(intercept, size(albedo_avg, 1), size(albedo_avg, 2));
 
     case "mods3"
         imfiles = dir(fullfile(imfolder, 'albedo_spatial*.mat'));
@@ -122,9 +152,6 @@ switch imsource
         albedo = NaN([size(albedo_avg, 1) * size(albedo_avg, 2) height(imfiles)], "single");
         numDuration = albedo;
         imindex = zeros([size(albedo_avg, 1) * size(albedo_avg, 2) height(imfiles)], "uint16");
-
-        % xlimit = R.XWorldLimits;
-        % ylimit = R.YWorldLimits;
 
         % load the mod data 2002 - 2019
         years = 2002:1:2019;
@@ -177,6 +204,8 @@ switch imsource
         % correlate albedo with bare ice duration pixel by pixel
         correlationR = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
         correlationP = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        slope = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        intercept = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
 
         for i = 1:length(imindex)
 
@@ -188,11 +217,18 @@ switch imsource
             correlationR(imindex(i)) = r(1, 2);
             correlationP(imindex(i)) = p(1, 2);
 
+            if size(df,1) >= 2
+                pf = polyfit(df(:, 1), df(:, 2), 1);
+                slope(imindex(i)) = pf(1);
+                intercept(imindex(i)) = pf(2);
+            end
         end
         
-        % reshape the correlation matrix
+        % reshape the outputs
         correlationR = reshape(correlationR, size(albedo_avg, 1), size(albedo_avg, 2));
         correlationP = reshape(correlationP, size(albedo_avg, 1), size(albedo_avg, 2));
+        slope = reshape(slope, size(albedo_avg, 1), size(albedo_avg, 2));
+        intercept = reshape(intercept, size(albedo_avg, 1), size(albedo_avg, 2));
         
     case "smb"
         imfiles = dir(fullfile(imfolder, 'albedo_spatial*.mat'));
@@ -215,9 +251,6 @@ switch imsource
         snmelt = albedo;
         imindex = zeros([size(albedo_avg, 1) * size(albedo_avg, 2) height(imfiles)], "uint16");
 
-
-        % xlimit = R.XWorldLimits;
-        % ylimit = R.YWorldLimits;
 
         % load the mod data 2002 - 2019
         years = 2002:1:2019;
@@ -288,6 +321,8 @@ switch imsource
         % correlate albedo with bare ice duration pixel by pixel
         correlationR = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
         correlationP = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        slope = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
+        intercept = NaN(size(albedo_avg, 1) * size(albedo_avg, 2), 1, "single");
 
         for i = 1:length(imindex)
 
@@ -303,11 +338,19 @@ switch imsource
                 correlationR(imindex(i)) = nan;
                 correlationP(imindex(i)) = nan;
             end
+
+            if size(df,1) >= 2
+                pf = polyfit(df(:, 1), df(:, 2), 1); % x=albedo, y=immelt
+                slope(imindex(i)) = pf(1);
+                intercept(imindex(i)) = pf(2);
+            end
         end
 
-        % reshape the correlation matrix
+        % reshape the outputs
         correlationR = reshape(correlationR, size(albedo_avg, 1), size(albedo_avg, 2));
         correlationP = reshape(correlationP, size(albedo_avg, 1), size(albedo_avg, 2));
+        slope = reshape(slope, size(albedo_avg, 1), size(albedo_avg, 2));
+        intercept = reshape(intercept, size(albedo_avg, 1), size(albedo_avg, 2));
         
 end
 end
