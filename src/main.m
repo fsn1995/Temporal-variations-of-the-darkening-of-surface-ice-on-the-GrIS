@@ -54,19 +54,20 @@ filelist = func_preprocessSMB("H:\AU\ENVS_SMB_ALBEDO");
     "..\print", "..\stat");
 % plot bare ice duration, albedo, and ablation/melt
 [~] = func_duration_analysis("..\stat\icestats.xlsx", "..\print");
-
+[~] = func_duration_comparison("..\stat\icestats.xlsx", "..\print");
 % 2.3 Spatial scale bare ice duration, albedo, and melt analysis
 % Spatial analysis of the impact of bare ice duration on albedo, and the influence of albedo on melt (fig. 3)
 
 % calculate spatial correlation
-[correlationR, correlationP, R] = func_spatialcorr("..\data\mods3", "mods3");
+[correlationR, correlationP, R, slope, intercept] = func_spatialcorr("..\data\mods3", "mods3");
 save("..\data\mod10s3corr.mat", ...
-    "correlationP", "correlationR", "R", "-mat");
-[correlationR, correlationP, R] = func_spatialcorr("..\data\mods3", "smb");
+    "correlationP", "correlationR", "R", "slope", "intercept", "-mat");
+[correlationR, correlationP, R, slope, intercept] = func_spatialcorr("..\data\mods3", "smb");
 save("..\data\mods3smbcorr.mat", ...
-    "correlationP", "correlationR", "R", "-mat");
+    "correlationP", "correlationR", "R", "slope", "intercept", "-mat");
 f1 = func_corrmap("..\data");
-
+f1 = func_corrmap_regression("..\data"); 
+f1 = func_corrmap_regression_darkzone("..\data");
 %% 3. Supplementary Data Analysis and Visualization
 f1 = func_supplement("..\data\mods3", ...
     "..\print\timeseriesmap");

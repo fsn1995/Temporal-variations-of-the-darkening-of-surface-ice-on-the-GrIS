@@ -27,16 +27,16 @@ dfawsduration.duration_darkice(dfawsduration.duration_darkice < 1) = nan;
 %% plotting
 f1 = figure;
 f1.Position = [750 379 1152 744];
-t = tiledlayout(f1, 2, 3, "TileSpacing","tight", "Padding", "tight");
+t = tiledlayout(f1, 1, 3, "TileSpacing","tight", "Padding", "tight");
 % awsgroupColor = ["#186294", "#bd3162", "#cdb47b", "#41b4ee"]; % gyarados "U", "M", "L", "G"
 
 ax1 = nexttile;
 mdl_bare = fitlm(dfawsduration.duration_bareice, dfawsduration.albedo, "linear");
 h1 = plot(ax1, mdl_bare);
 hold on
-text(ax1, 2, 0.17, ...
-    sprintf("a) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-    mdl_bare.Rsquared.Ordinary, mdl_bare.ModelFitVsNullModel.Pvalue, mdl_bare.NumObservations));
+% text(ax1, 2, 0.17, ...
+%     sprintf("a) r^2:%.2f, p-value<%.2f, n:%.0f", ...
+%     mdl_bare.Rsquared.Ordinary, mdl_bare.ModelFitVsNullModel.Pvalue, mdl_bare.NumObservations));
 s1 = gscatter(ax1, dfawsduration.duration_bareice, dfawsduration.albedo, ...
     dfawsduration.awsgroup);
 s1(1).Color = "#cdb47b";
@@ -48,7 +48,7 @@ set(h1(3), "Color", "k");
 % set(h1(4), "Color", "k");
 delete(h1(1)); %[h1(1), h1(3), h1(4)]
 xlim(ax1, [1 92]);
-ylim(ax1, [0.1 0.8]);
+ylim(ax1, [0 0.9]);
 pbaspect(ax1, [1 1 1]);
 xlabel(ax1, "bare ice duration (days)");
 ylabel(ax1, "albedo (JJA average)");
@@ -63,9 +63,9 @@ ax2 = nexttile;
 mdl = fitlm(dfawsduration.albedo, dfawsduration.ablation, "linear");
 h5 = plot(ax2, mdl);
 hold on
-text(ax2, 0.23, -5.5, ...
-    sprintf("b) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-    mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
+% text(ax2, 0.23, -5.5, ...
+%     sprintf("b) r^2:%.2f, p-value<%.2f, n:%.0f", ...
+%     mdl.Rsquared.Ordinary, mdl.ModelFitVsNullModel.Pvalue, mdl.NumObservations));
 s3 = gscatter(ax2, dfawsduration.albedo, dfawsduration.ablation, ...
     dfawsduration.awsgroup);
 s3(1).Color = "#cdb47b";
@@ -90,9 +90,9 @@ ax3 = nexttile;
 mdl_snowfree = fitlm(dfawsduration.duration_bareice, dfawsduration.albedo_ice, "linear");
 h3 = plot(ax3, mdl_snowfree);
 hold on
-text(ax3, 2, 0.15, ...
-    sprintf("e) r^2:%.2f, p-value<%.2f, n:%.0f", ...
-    mdl_snowfree.Rsquared.Ordinary, mdl_snowfree.ModelFitVsNullModel.Pvalue, mdl_bare.NumObservations));
+% text(ax3, 2, 0.15, ...
+%     sprintf("e) r^2:%.2f, p-value<%.2f, n:%.0f", ...
+%     mdl_snowfree.Rsquared.Ordinary, mdl_snowfree.ModelFitVsNullModel.Pvalue, mdl_bare.NumObservations));
 s2 = gscatter(ax3, dfawsduration.duration_bareice, dfawsduration.albedo_ice, ...
     dfawsduration.awsgroup);
 s2(1).Color = "#cdb47b";
@@ -126,22 +126,22 @@ legend(ax3, 'hide');
 %% AWS vs HSA
 % dfawsduration = dfawsduration(dfawsduration.year>2018,:);
 
-ax5 = nexttile;
-A = imread("..\print\HSA_linear.png");
-% A = imresize(A, 0.8);
-imshow(A);
-text(ax5, -0.05, -0.05, 'c) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
-
-ax6 = nexttile;
-A = imread("..\print\smb_linear.png");
-% A = imresize(A, 0.8);
-imshow(A);
-text(ax6, 0.0, -0.05, 'd) r^2:0.46, p-value<0.00, n:31,283,401', 'Units', 'normalized');
+% ax5 = nexttile;
+% A = imread("..\print\HSA_linear.png");
+% % A = imresize(A, 0.8);
+% imshow(A);
+% text(ax5, -0.05, -0.05, 'c) r^2:0.55, p-value<0.00, n:1,889,267,238', 'Units', 'normalized');
+% 
+% ax6 = nexttile;
+% A = imread("..\print\smb_linear.png");
+% % A = imresize(A, 0.8);
+% imshow(A);
+% text(ax6, 0.0, -0.05, 'd) r^2:0.46, p-value<0.00, n:31,283,401', 'Units', 'normalized');
 
 
 fontsize(t, 14, "points");
 
-exportgraphics(f1, outputfolder+'\duration_analysis.pdf', "Resolution",300);
+exportgraphics(f1, outputfolder+'\duration_analysis.png', "Resolution",300);
 % legend(ax3, "off");
 
 

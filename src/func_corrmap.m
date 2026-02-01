@@ -209,6 +209,6 @@ boxchart(ax12_1, correlationR(:), ...
     'BoxFaceColor', '#083962', 'MarkerColor', '#94ace6');
 set(ax12_1, 'XTickLabel', [], 'Color', 'None', 'FontSize', 8);
 
-exportgraphics(f1, "..\print\corrmap.pdf", "Resolution", 300);
+exportgraphics(f1, "..\print\corrmap.png", "Resolution", 300);
 
 end    
