@@ -7,6 +7,7 @@ function f_slope = func_corrmap_regression(imfolder)
 %   - R² values (correlation coefficient squared)
 %   Shunan Feng (shunan.feng@envs.au.dk)
 
+%% BID vs albedo section
 %% Slope map (duration vs albedo)
 load(fullfile(imfolder, "mod10s3corr.mat"));
 % if isvector(slope) && numel(slope) == numel(correlationR)
@@ -66,16 +67,17 @@ fontsize(f_intercept, 16, "points");
 exportgraphics(f_intercept, "..\print\corrmap_bid_intercept.png", "Resolution", 300);
 
 %% R² map (duration vs albedo)
-load(fullfile(imfolder, "mod10s3corr.mat"));
+% load(fullfile(imfolder, "mod10s3corr.mat"));
 correlationR_sq = correlationR .* correlationR;
 correlationR_sq(correlationP >= 0.05) = nan;
+correlationR_sq(isnan(slope)) = nan;
 
 f_r2 = figure;
 f_r2.Position = [100 100 900 700];
 ax_r2_map = axes(f_r2);
 greenland('k');
 mapshow(ax_r2_map, correlationR_sq, R, 'DisplayType', 'surface');
-colormap(ax_r2_map, cmocean('solar'));
+colormap(ax_r2_map, cmocean('haline'));
 clim(ax_r2_map, [0, 1]);
 axis off;
 % title(ax_r2_map, "R²: Bare Ice Duration vs Albedo", "FontWeight", "normal");
@@ -92,4 +94,64 @@ set(inset_r2, 'XTickLabel', [], 'Color', 'None', 'FontSize', 8);
 fontsize(f_r2, 16, "points");
 exportgraphics(f_r2, "..\print\corrmap_bid_r2.png", "Resolution", 300);
 
+%% albedo vs melt section
+load(fullfile(imfolder, "mods3smbcorr.mat"));
+%% slope map (albedo vs melt)
+slope(correlationP >= 0.05) = nan;
+slope(slope<=0) = nan; % remove outliers
+
+f_slope_am = figure;
+f_slope_am.Position = [100 100 900 700];
+ax_slope_map_am = axes(f_slope_am);
+greenland('k');
+mapshow(ax_slope_map_am, slope, R, 'DisplayType', 'surface');
+colormap(ax_slope_map_am, cmocean('ice'));
+clim(ax_slope_map_am, [0, 10]);
+axis off;
+c_slope_am = colorbar(ax_slope_map_am, "eastoutside");
+c_slope_am.Label.String = "Slope: $\overline{\alpha}$ vs Melt (m w.e.)";
+c_slope_am.Label.Interpreter = 'latex';
+scalebarpsn('location', 'se');
+fontsize(f_slope_am, 16, "points");
+exportgraphics(f_slope_am, "..\print\corrmap_am_slope.png", "Resolution", 300);
+%% intercept map (albedo vs melt)
+intercept(correlationP >= 0.05) = nan;
+intercept(isnan(slope)) = nan;  
+f_intercept_am = figure;
+f_intercept_am.Position = [100 100 900 700];
+ax_intercept_map_am = axes(f_intercept_am);
+greenland('k');
+mapshow(ax_intercept_map_am, intercept, R, 'DisplayType', 'surface');
+colormap(ax_intercept_map_am, cmocean('tempo'));
+clim(ax_intercept_map_am, [-10, 0]);
+axis off;
+c_intercept_am = colorbar(ax_intercept_map_am, "eastoutside");
+c_intercept_am.Label.String = "Intercept ($\overline{\alpha}$ vs Melt)";
+c_intercept_am.Label.Interpreter = 'latex';
+scalebarpsn('location', 'se');
+fontsize(f_intercept_am, 16, "points");
+exportgraphics(f_intercept_am, "..\print\corrmap_am_intercept.png", "Resolution", 300);
+%% R² map (albedo vs melt)
+correlationR_sq = correlationR .* correlationR;
+correlationR_sq(correlationP >= 0.05) = nan;
+correlationR_sq(isnan(slope)) = nan;
+f_r2_am = figure;
+f_r2_am.Position = [100 100 900 700];
+ax_r2_map_am = axes(f_r2_am);       
+greenland('k');
+mapshow(ax_r2_map_am, correlationR_sq, R, 'DisplayType', 'surface');
+colormap(ax_r2_map_am, cmocean('haline'));
+clim(ax_r2_map_am, [0, 1]);
+axis off;
+c_r2_am = colorbar(ax_r2_map_am, "eastoutside");
+c_r2_am.Label.String = "r² (p < 0.05)";
+scalebarpsn('location', 'se');
+axpos = ax_r2_map_am.Position;
+inset_r2_am = axes(f_r2_am, 'Position', [axpos(1)+axpos(3)/1.95 ...
+    axpos(2)+axpos(4)/3 ...
+    axpos(3)/10 axpos(4)/2]);
+boxchart(inset_r2_am, correlationR_sq(:), 'BoxFaceColor', '#083962', 'MarkerColor', '#94ace6');
+set(inset_r2_am, 'XTickLabel', [], 'Color', 'None', 'FontSize', 8);
+fontsize(f_r2_am, 16, "points");
+exportgraphics(f_r2_am, "..\print\corrmap_am_r2.png", "Resolution", 300);
 end

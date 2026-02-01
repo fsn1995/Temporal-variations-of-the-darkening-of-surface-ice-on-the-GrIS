@@ -67,6 +67,7 @@ save("..\data\mods3smbcorr.mat", ...
     "correlationP", "correlationR", "R", "slope", "intercept", "-mat");
 f1 = func_corrmap("..\data");
 f1 = func_corrmap_regression("..\data"); 
+f1 = func_corrmap_regression_darkzone("..\data");
 %% 3. Supplementary Data Analysis and Visualization
 f1 = func_supplement("..\data\mods3", ...
     "..\print\timeseriesmap");
