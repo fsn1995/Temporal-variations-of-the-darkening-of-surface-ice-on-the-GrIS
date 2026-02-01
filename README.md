@@ -1,5 +1,5 @@
 # Bare ice duration darkens the Greenland Ice Sheet
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.12735482.svg)](https://doi.org/10.5281/zenodo.12735482)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18451841.svg)](https://doi.org/10.5281/zenodo.18451841)
  
 This GitHub repository investigates the impact of bare ice duration on the average summer albedo and the influence of albedo on melt rates on the bare ice area of the Greenland Ice Sheet. 
 Details of this repository are described in a manuscript that is currently under review.
