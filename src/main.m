@@ -72,3 +72,7 @@ f1 = func_corrmap_regression_darkzone("..\data");
 f1 = func_supplement("..\data\mods3", ...
     "..\print\timeseriesmap");
 
+[files] = func_predictalbedo("..\data\mods3", "s3");
+[files] = func_predictalbedo("..\data\mods3", "mod10");
+
+stats = func_predictalbedo_errorplot("..\\data\\mods3", "..\\print");
